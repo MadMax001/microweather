@@ -1,0 +1,18 @@
+app:
+  weather:
+    url: http://localhost
+    #url: https://postman-echo.com
+    #url: http://10.73.0.249:81
+    timeout: 1000
+spring:
+  http:
+    log-request-details: true
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          reactive:
+            function:
+              client:
+                exchangefunctions: trace
