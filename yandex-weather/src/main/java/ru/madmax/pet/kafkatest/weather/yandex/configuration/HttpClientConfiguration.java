@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
+import ru.madmax.pet.kafkatest.weather.yandex.exception.AppYandexException;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -33,6 +34,7 @@ public class HttpClientConfiguration {
     public HttpClient httpClient() {
         var httpClient = HttpClient
                 .create()
+                //.wiretap(this.getClass().getCanonicalName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, yaWeatherRequestTimeout)
                 .doOnConnected(connection -> {
                     connection.addHandlerLast(
@@ -72,7 +74,7 @@ public class HttpClientConfiguration {
                 }
             }
         } catch (SocketException e) {
-            throw new RuntimeException(e);                                              //todo!
+            throw new AppYandexException(e);
         }
         return ipList;
     }
