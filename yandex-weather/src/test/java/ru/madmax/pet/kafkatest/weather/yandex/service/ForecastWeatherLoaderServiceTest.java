@@ -10,13 +10,17 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.kafkatest.weather.yandex.configuration.HttpClientConfiguration;
 import ru.madmax.pet.kafkatest.weather.yandex.model.Point;
 import ru.madmax.pet.kafkatest.weather.yandex.model.PointBuilder;
 import ru.madmax.pet.kafkatest.weather.yandex.model.Weather;
@@ -27,12 +31,13 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest                                                     //todo может что-то более "легкое"
+@ExtendWith(SpringExtension.class)
+@TestPropertySource(properties = {"app.weather.timeout=1000"})
+@ContextConfiguration(classes = HttpClientConfiguration.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ActiveProfiles("test")
 class ForecastWeatherLoaderServiceTest {
     private final HttpClient httpClient;
-
 
     static MockWebServer remoteMockServer;
     WeatherLoaderService loaderService;
