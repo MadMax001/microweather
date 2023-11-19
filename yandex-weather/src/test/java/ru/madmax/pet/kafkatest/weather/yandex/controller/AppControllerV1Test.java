@@ -3,13 +3,11 @@ package ru.madmax.pet.kafkatest.weather.yandex.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
@@ -23,9 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 @WebFluxTest(controllers = AppControllerV1.class)                   //аннотация автоматом конфигурит webTestClient
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class AppControllerV1Test {
-    //private final MockMvc mockMvc;
-    @Autowired
-    private WebTestClient webTestClient;
+    private final WebTestClient webTestClient;
     @MockBean
     private WeatherLoaderService loaderService;
 
@@ -56,7 +52,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_withoutLatitude_AndGet400Status() throws Exception {
+    void weatherRequest_withoutLatitude_AndGet400Status() {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
         String stringContent = "{\"lon\":46.001373}";
         webTestClient
@@ -71,7 +67,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_withoutLongitude_AndGet400Status() throws Exception {
+    void weatherRequest_withoutLongitude_AndGet400Status()  {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
         String stringContent = "{\"lat\":51.534986}";
         webTestClient
@@ -88,7 +84,7 @@ class AppControllerV1Test {
     @Test
     void weatherRequest_withoutGUIDHeader_AndGet400Status() throws Exception {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
-        String stringContent = "{\"lat\":51.534986}";
+        String stringContent = new ObjectMapper().writeValueAsString(PointBuilder.aPoint().build());
         webTestClient
                 .post()
                 .uri("/api/v1/weather")
