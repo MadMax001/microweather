@@ -1,5 +1,6 @@
 package ru.madmax.pet.microweather.weather.yandex.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -11,14 +12,16 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
+import ru.madmax.pet.microweather.weather.yandex.exception.AppYandexException;
 import ru.madmax.pet.microweather.weather.yandex.model.*;
 import ru.madmax.pet.microweather.weather.yandex.service.WeatherLoaderService;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
 @ActiveProfiles("test")
-@WebFluxTest(controllers = AppControllerV1.class)                   //аннотация автоматом конфигурит webTestClient
+@WebFluxTest(controllers = {AppControllerV1.class, ExceptionHandlerController.class})                   //аннотация автоматом конфигурит webTestClient
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class AppControllerV1Test {
     private final WebTestClient webTestClient;
@@ -94,5 +97,23 @@ class AppControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError();
+    }
+
+    @Test
+    void weatherRequest_AppExceptionInService_AndGet400Status() throws JsonProcessingException {
+        AppYandexException error = new AppYandexException("test error");
+        doThrow(error).when(loaderService).requestWeatherByPoint(any(Point.class));
+        String stringContent = new ObjectMapper().writeValueAsString(PointBuilder.aPoint().build());
+
+        webTestClient
+                .post()
+                .uri("/api/v1/weather")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(stringContent))
+                .header("request-guid", "testguid")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError();
+
     }
 }

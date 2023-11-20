@@ -2,19 +2,14 @@ package ru.madmax.pet.microweather.weather.yandex.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microweather.weather.yandex.model.Point;
 import ru.madmax.pet.microweather.weather.yandex.model.Weather;
 import ru.madmax.pet.microweather.weather.yandex.service.WeatherLoaderService;
 
 import javax.validation.Valid;
-import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
@@ -37,26 +32,6 @@ public class AppControllerV1 {
                 .header("request-guid", requestGuid)
                 .body(monoWeather);
     }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(WebExchangeBindException.class)
-    public Mono<Throwable> handleValidationExceptions(WebExchangeBindException ex) {
-        ex.printStackTrace();
-        log.error(ex.getBindingResult().getAllErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.joining(", ")));
-        return Mono.error(ex);
-    }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ServerWebInputException.class)
-    public Mono<Throwable> handleValidationExceptions1(ServerWebInputException ex) {
-        log.error(ex.getMessage());
-        return Mono.error(ex);
-    }
-
-
 
 
 }
