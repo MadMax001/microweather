@@ -2,6 +2,7 @@ package ru.madmax.pet.microweather.weather.yandex.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -59,7 +60,7 @@ class ForecastWeatherLoaderServiceTest {
     void initialize() {
         String url = remoteMockServer.url("").toString();
         String token = "test-token";
-        loaderService = new ForecastWeatherLoaderService(httpClient, token, url);
+        loaderService = new ForecastWeatherLoaderService(httpClient, token, url, 100);
     }
 
     @Test
@@ -93,6 +94,32 @@ class ForecastWeatherLoaderServiceTest {
                 "lat=",
                 "lon=",
                 "forecast");
+
+    }
+
+    @Test
+    void whenServerIsUnavailableTwice_CheckRetry() throws JsonProcessingException {
+        final Weather weather = WeatherBuilder.aWeather().build();
+        final String stringContent = new ObjectMapper().writeValueAsString(weather);
+
+        remoteMockServer.enqueue(new MockResponse()
+                .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
+        remoteMockServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .setBody(stringContent));
+
+        Point point = PointBuilder.aPoint().build();
+
+        Mono<Weather> monoWeather = loaderService.requestWeatherByPoint(point);
+
+
+
+        StepVerifier.create(monoWeather)
+                .expectNext(weather)
+                .expectComplete()
+                .verify(Duration.ofSeconds(3));
+
+        assertThat(remoteMockServer.getRequestCount()).isEqualTo(2);
 
     }
 }

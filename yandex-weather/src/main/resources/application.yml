@@ -2,6 +2,7 @@ app:
   weather:
     url: https://api.weather.yandex.ru
     key: fea812e8-2f35-46da-807d-2fd57d71e2d1
-    timeout: 1000
+    timeout: 1500
+    retry-duration: 150
   callback:
     url: localhost:8080/answer
