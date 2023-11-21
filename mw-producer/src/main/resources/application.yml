@@ -1,0 +1,11 @@
+app:
+  weather:
+    timeout: 1500
+    retry:
+      duration: 150
+      attempts: 3
+    services:
+      -
+        id: yandex
+        host: http://localhost:8081
+        path: /api/v1/weather
