@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.weather.yandex.controller;
+package ru.madmax.pet.microweather.yandex.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,9 +12,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
-import ru.madmax.pet.microweather.weather.yandex.exception.AppYandexException;
-import ru.madmax.pet.microweather.weather.yandex.model.*;
-import ru.madmax.pet.microweather.weather.yandex.service.WeatherLoaderService;
+import ru.madmax.pet.microweather.yandex.exception.AppYandexException;
+import ru.madmax.pet.microweather.yandex.model.Point;
+import ru.madmax.pet.microweather.yandex.model.PointBuilder;
+import ru.madmax.pet.microweather.yandex.model.WeatherBuilder;
+import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;

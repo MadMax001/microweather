@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.weather.yandex.controller;
+package ru.madmax.pet.microweather.yandex.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

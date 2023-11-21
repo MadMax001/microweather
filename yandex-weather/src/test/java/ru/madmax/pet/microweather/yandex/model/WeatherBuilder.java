@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.weather.yandex.model;
+package ru.madmax.pet.microweather.yandex.model;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;

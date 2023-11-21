@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.weather.yandex.configuration;
+package ru.madmax.pet.microweather.yandex.configuration;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
-import ru.madmax.pet.microweather.weather.yandex.exception.AppYandexException;
+import ru.madmax.pet.microweather.yandex.exception.AppYandexException;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

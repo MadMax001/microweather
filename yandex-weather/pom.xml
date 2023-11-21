@@ -6,7 +6,7 @@
         <artifactId>microweather</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>yandex-weather</artifactId>
+    <artifactId>mw-yandex-weather</artifactId>
     <packaging>jar</packaging>
     <name>yandex-weather Maven Webapp</name>
     <url>http://maven.apache.org</url>
@@ -44,10 +44,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.uuid</groupId>
-            <artifactId>java-uuid-generator</artifactId>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

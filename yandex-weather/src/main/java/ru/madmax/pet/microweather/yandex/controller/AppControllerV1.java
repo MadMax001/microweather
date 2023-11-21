@@ -1,13 +1,13 @@
-package ru.madmax.pet.microweather.weather.yandex.controller;
+package ru.madmax.pet.microweather.yandex.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import ru.madmax.pet.microweather.weather.yandex.model.Point;
-import ru.madmax.pet.microweather.weather.yandex.model.Weather;
-import ru.madmax.pet.microweather.weather.yandex.service.WeatherLoaderService;
+import ru.madmax.pet.microweather.yandex.model.Point;
+import ru.madmax.pet.microweather.yandex.model.Weather;
+import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
 import javax.validation.Valid;
 

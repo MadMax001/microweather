@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.weather.yandex.exception;
+package ru.madmax.pet.microweather.yandex.exception;
 
 public class AppYandexException extends RuntimeException {
     public AppYandexException(String s) {
