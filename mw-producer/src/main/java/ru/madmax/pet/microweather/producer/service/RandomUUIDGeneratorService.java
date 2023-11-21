@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 @Service
-public class RandomUUIDGeneratorServiceImpl implements UUIDGeneratorService {
+public class RandomUUIDGeneratorService implements UUIDGeneratorService {
 
     @Override
     public String randomGenerate() {
