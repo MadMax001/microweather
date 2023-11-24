@@ -1,37 +1,43 @@
 package ru.madmax.pet.microweather.producer.configuration;
 
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
+import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 
-import javax.annotation.PostConstruct;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
-@Component
-@ConfigurationProperties(prefix = "app.weather.services")
+@Configuration
+@ConfigurationProperties(prefix = "app.weather")
 public class WeatherRemoteServicesListBuilder {
-    private List<RemoteService> services;
     private Map<String, URL> map;
 
-    @PostConstruct
-    private void initMap() throws MalformedURLException {
-        map = new HashMap<>();
-        for (RemoteService service : services) {
-            map.put(service.getId(), new URL(String.format("%s://%s",
-                    service.getUrl(),
-                    service.getPath())));
-        }
+    public void setServices(List<RemoteServiceUrl> services) {
+        map = services.stream().collect(Collectors.toMap(
+                RemoteServiceUrl::getId,
+                element -> {
+                    try {
+                        return new URL(String.format("%s%s",
+                                element.getHost(),
+                                (element.getPath().startsWith("/")?
+                                    element.getPath():
+                                    "/" + element.getPath())));
+                    } catch (MalformedURLException e) {
+                        throw new AppProducerException(e);
+                    }
+                },
+                (e1,e2) -> {throw new AppProducerException("Duplicate service id in configuration");}));
     }
 
     @Setter
     @Getter
-    public static class RemoteService {
+    public static class RemoteServiceUrl {
         private String id;
-        private String url;
+        private String host;
         private String path;
     }
 
