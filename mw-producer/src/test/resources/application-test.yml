@@ -1,6 +1,58 @@
+app:
+  weather:
+    services:
+      -
+        id: first
+        host: http://value1.ru
+        path: /value2
+      -
+        id: second
+        host: https://value3.org
+        path: value4
 spring:
   http:
     log-request-details: true
+  kafka:
+    client-id: ${spring.application.name}
+#    #bootstrap-servers: localhost:9093
+    topic:
+      name: test-simple-01
+    replication:
+      factor: 1
+    partition:
+      number: 1
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      properties:
+        acks: 1
+        spring:
+          json:
+            add:
+              type:
+                headers: false
+    consumer:
+      group-id: "order-1"
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: a
+#  json:
+#    value:
+#      default:
+#        type: ru.home.kafka.dto.JsonMessage
+#  deserializer:
+#    key:
+#      delegate:
+#        class: org.apache.kafka.common.serialization.StringDeserializer
+#    value:
+#      delegate:
+#        class: org.springframework.kafka.support.serializer.JsonDeserializer
 logging:
   level:
     reactor:
@@ -15,3 +67,4 @@ logging:
             function:
               client:
                 ExchangeFunctions: TRACE
+

@@ -9,3 +9,15 @@ app:
         id: yandex
         host: http://localhost:8081
         path: /api/v1/weather
+spring:
+  kafka:
+    client-id: ${spring.application.name}
+    bootstrap-servers: localhost:9093
+    # Перечисляем всех наших брокеров
+    #bootstrap-servers: ${KAFKA_RESERVATION_BOOTSTRAP_SERVERS:localhost:9092},host.docker.internal:29092,host.docker.internal:29093
+#    properties:
+      # Тип, для которого определяем конкретные сериализаторы
+#      spring.json.value.default.type: ru.home.kafka.dto.JsonMessage
+#      spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+#      spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
