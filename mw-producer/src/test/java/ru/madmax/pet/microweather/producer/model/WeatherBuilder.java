@@ -9,9 +9,9 @@ import lombok.With;
 @With
 public class WeatherBuilder implements TestBuilder<Weather>{
     private long now = 1234567890;
-    private String infoURL;
-    private Double factTemp;
-    private Double factWindSpeed;
+    private String infoURL = "www.test.ru";
+    private Double factTemp = 10.0;
+    private Double factWindSpeed = 5.3;
 
     @Override
     public Weather build() {
