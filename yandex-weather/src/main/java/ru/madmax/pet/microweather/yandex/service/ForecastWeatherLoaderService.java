@@ -9,7 +9,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import ru.madmax.pet.microweather.yandex.model.Point;
 import ru.madmax.pet.microweather.yandex.model.Weather;
-import org.springframework.http.HttpStatus;
+
 
 import java.time.Duration;
 
@@ -45,10 +45,10 @@ public class ForecastWeatherLoaderService implements WeatherLoaderService {
                         .queryParam("lon", point.getLon().toString())
                         .build())
                 .retrieve()
-                .onStatus(HttpStatus::is4xxClientError,
-                        error -> Mono.error(new RuntimeException("API not found")))
-                .onStatus(HttpStatus::is5xxServerError,
-                        error -> Mono.error(new RuntimeException("Server is not responding")))
+//                .onStatus(HttpStatus::is4xxClientError,
+//                        error -> Mono.error(new RuntimeException("API not found")))
+//                .onStatus(HttpStatus::is5xxServerError,
+//                        error -> Mono.error(new RuntimeException("Server is not responding")))
                 .bodyToMono(Weather.class)
                 .retryWhen(Retry.backoff(yaWeatherRetryAttempts, Duration.ofMillis(yaWeatherRetryDuration)));
     }

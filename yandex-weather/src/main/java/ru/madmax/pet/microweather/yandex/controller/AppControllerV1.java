@@ -1,5 +1,6 @@
 package ru.madmax.pet.microweather.yandex.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,6 @@ import ru.madmax.pet.microweather.yandex.model.Point;
 import ru.madmax.pet.microweather.yandex.model.Weather;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
-import javax.validation.Valid;
 
 @RestController
 @AllArgsConstructor
