@@ -13,17 +13,17 @@ spring:
   http:
     log-request-details: true
   kafka:
-    client-id: ${spring.application.name}
-#    #bootstrap-servers: localhost:9093
+    client-id: producer-tester
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
     topic:
-      name: test-simple-01
+      name: test-simple-topic
     replication:
       factor: 1
     partition:
       number: 1
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       retries: 3
       properties:
         acks: 1
@@ -33,15 +33,15 @@ spring:
               type:
                 headers: false
     consumer:
-      group-id: "order-1"
+#      group-id: "test-group"
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring:
-          json:
-            trusted:
-              packages: a
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      properties:
+#        spring:
+#          json:
+#            trusted:
+#              packages: a
 #  json:
 #    value:
 #      default:

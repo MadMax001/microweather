@@ -11,8 +11,13 @@ app:
         path: /api/v1/weather
 spring:
   kafka:
-    client-id: ${spring.application.name}
     bootstrap-servers: localhost:9093
+    topic:
+      name: test-simple-topic
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
     # Перечисляем всех наших брокеров
     #bootstrap-servers: ${KAFKA_RESERVATION_BOOTSTRAP_SERVERS:localhost:9092},host.docker.internal:29092,host.docker.internal:29093
 #    properties:
