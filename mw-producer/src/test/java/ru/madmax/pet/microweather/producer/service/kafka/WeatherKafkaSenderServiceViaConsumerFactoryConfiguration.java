@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.producer.service;
+package ru.madmax.pet.microweather.producer.service.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -21,13 +21,20 @@ import java.util.Map;
 @EnableKafka
 class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
     @Value("${spring.kafka.bootstrap-servers}")
-    private String brokers;
+    String brokers;
+    @Value("${spring.kafka.replication.factor}")
+    Integer replicationFactor;
+    @Value("${spring.kafka.partition.number}")
+    Integer partitionNumber;
+    @Value("${spring.kafka.topic.name}")
+    String sendClientTopic;
     @Bean
     public ConsumerFactory<String, Weather> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, "producer-tester");
+//        props.put("allow.auto.create.topics", false);
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
@@ -71,4 +78,12 @@ class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
         factory.getContainerProperties().setPollTimeout(3000);
         return factory;
     }
+
+/*    @Bean
+    public NewTopic testTopic() {
+        return TopicBuilder.name(sendClientTopic)
+                .partitions(partitionNumber)
+                .replicas(replicationFactor)
+                .build();
+    }*/
 }

@@ -13,6 +13,8 @@ spring:
   http:
     log-request-details: true
   kafka:
+    properties:
+      "[isolation.level]": read_committed
     client-id: producer-tester
     bootstrap-servers: ${spring.embedded.kafka.brokers}
     topic:
@@ -24,35 +26,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      retries: 3
       properties:
-        acks: 1
-        spring:
-          json:
-            add:
-              type:
-                headers: false
-    consumer:
-#      group-id: "test-group"
-      auto-offset-reset: earliest
-#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      properties:
-#        spring:
-#          json:
-#            trusted:
-#              packages: a
-#  json:
-#    value:
-#      default:
-#        type: ru.home.kafka.dto.JsonMessage
-#  deserializer:
-#    key:
-#      delegate:
-#        class: org.apache.kafka.common.serialization.StringDeserializer
-#    value:
-#      delegate:
-#        class: org.springframework.kafka.support.serializer.JsonDeserializer
+        "[spring.json.add.type.headers]": false
 logging:
   level:
     reactor:

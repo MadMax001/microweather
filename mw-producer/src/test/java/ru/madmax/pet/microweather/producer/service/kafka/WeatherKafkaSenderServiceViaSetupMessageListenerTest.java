@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.producer.service;
+package ru.madmax.pet.microweather.producer.service.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -18,6 +18,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microweather.producer.model.Weather;
 import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

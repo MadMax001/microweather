@@ -2,7 +2,7 @@ package ru.madmax.pet.microweather.producer.exception;
 
 
 public class AppProducerException extends RuntimeException {
-    public AppProducerException(Exception e) {
+    public AppProducerException(Throwable e) {
         super(e);
     }
 

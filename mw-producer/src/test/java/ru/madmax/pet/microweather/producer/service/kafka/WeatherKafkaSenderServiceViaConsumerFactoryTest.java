@@ -1,4 +1,4 @@
-package ru.madmax.pet.microweather.producer.service;
+package ru.madmax.pet.microweather.producer.service.kafka;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -14,11 +14,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microweather.producer.model.Weather;
 import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.service.LogService;
+import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
 import java.time.Duration;
 import java.util.Collections;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
