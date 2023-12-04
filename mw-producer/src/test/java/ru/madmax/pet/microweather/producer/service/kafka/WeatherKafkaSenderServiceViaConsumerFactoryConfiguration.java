@@ -13,7 +13,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ru.madmax.pet.microweather.producer.model.MessageDTO;
-import ru.madmax.pet.microweather.producer.model.Weather;
 
 import java.util.HashMap;
 import java.util.Map;
