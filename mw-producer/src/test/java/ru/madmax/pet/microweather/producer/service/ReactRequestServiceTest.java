@@ -57,7 +57,7 @@ class ReactRequestServiceTest {
     @Test
     void checkForRemoteRequest_withoutCheckingGuidHeaderInResponse()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
         final String stringResponseContent = mapper.writeValueAsString(weather);
 
@@ -65,7 +65,7 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final Point point = PointBuilder.aPoint().build();
+        final Point point = TestPointBuilder.aPoint().build();
         final String stringRequestContent = mapper.writeValueAsString(point);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
@@ -74,7 +74,7 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<Weather> monoWeather = loaderService.registerRequest(point, params);
+        Mono<Weather> monoWeather = loaderService.sendRequest(point, params);
 
         StepVerifier.create(monoWeather)
                 .expectNext(weather)
@@ -92,7 +92,7 @@ class ReactRequestServiceTest {
    @Test
     void whenServerIsUnavailableOnce_AndAnswerAfterOneRetry_CheckRetry()
            throws JsonProcessingException, InterruptedException, MalformedURLException {
-       final Weather weather = WeatherBuilder.aWeather().build();
+       final Weather weather = TestWeatherBuilder.aWeather().build();
        final ObjectMapper mapper = new ObjectMapper();
        final String stringResponseContent = mapper.writeValueAsString(weather);
 
@@ -102,7 +102,7 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-       final Point point = PointBuilder.aPoint().build();
+       final Point point = TestPointBuilder.aPoint().build();
        final String stringRequestContent = mapper.writeValueAsString(point);
        final URL url = new URL(remoteMockServer.url("/test-path").toString());
        final RequestParams params = RequestParams
@@ -111,7 +111,7 @@ class ReactRequestServiceTest {
                .url(url)
                .build();
 
-       Mono<Weather> monoWeather = loaderService.registerRequest(point, params);
+       Mono<Weather> monoWeather = loaderService.sendRequest(point, params);
 
         StepVerifier.create(monoWeather)
                 .expectNext(weather)
@@ -131,7 +131,7 @@ class ReactRequestServiceTest {
     @Test
     void whenServerIsUnavailable2Times_AndAnswerAfterOneRetry_CheckRetry_MaxRetryAttemptsExceed()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
         final String stringResponseContent = mapper.writeValueAsString(weather);
 
@@ -143,7 +143,7 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final Point point = PointBuilder.aPoint().build();
+        final Point point = TestPointBuilder.aPoint().build();
         final String stringRequestContent = mapper.writeValueAsString(point);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
@@ -151,7 +151,7 @@ class ReactRequestServiceTest {
                 .guid("test-guid")
                 .url(url)
                 .build();
-        Mono<Weather> monoWeather = loaderService.registerRequest(point, params);
+        Mono<Weather> monoWeather = loaderService.sendRequest(point, params);
 
         StepVerifier.create(monoWeather)
                 .expectErrorMatches(

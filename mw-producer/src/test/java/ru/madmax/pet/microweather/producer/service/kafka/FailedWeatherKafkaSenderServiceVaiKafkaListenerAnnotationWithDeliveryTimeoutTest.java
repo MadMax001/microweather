@@ -1,5 +1,7 @@
 package ru.madmax.pet.microweather.producer.service.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
@@ -8,12 +10,12 @@ import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microweather.producer.model.Weather;
-import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.LogService;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
@@ -39,10 +41,13 @@ import static org.mockito.Mockito.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FailedWeatherKafkaSenderServiceVaiKafkaListenerAnnotationWithDeliveryTimeoutTest {
     final WeatherKafkaSenderService weatherSenderService;
-    BlockingQueue<ConsumerRecord<String, Weather>> records = new LinkedBlockingQueue<>();
+    BlockingQueue<ConsumerRecord<String, MessageDTO>> records = new LinkedBlockingQueue<>();
 
     @MockBean
     LogService logService;
+
+
+    final ObjectMapper objectMapper;
 
     @Captor
     ArgumentCaptor<String> errorMessageCaptor;
@@ -51,17 +56,21 @@ class FailedWeatherKafkaSenderServiceVaiKafkaListenerAnnotationWithDeliveryTimeo
     @KafkaListener(topics = "${spring.kafka.topic.name}",
             groupId = "FailedKafkaListenerAnnotationTestGroup",
             containerFactory = "kafkaListenerContainerFactory")
-    private void listen(ConsumerRecord<String, Weather> consumerRecord) throws InterruptedException {
+    private void listen(ConsumerRecord<String, MessageDTO> consumerRecord) throws InterruptedException {
         records.put(consumerRecord);
     }
 
     @Test
-    void sendWeatherMessageToProducer_AndProducerCantSendByTimeout_AndCheckOnFailedSection() throws InterruptedException {
+    void sendWeatherMessageToProducer_AndProducerCantSendByTimeout_AndCheckOnFailedSection() throws InterruptedException, JsonProcessingException {
         doNothing().when(logService).error(any(String.class));
 
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
+                .withType(MessageType.WEATHER)
+                .withMessage(objectMapper.writeValueAsString(weather))
+                .build();
         final String key = "kafka-annotation-4";
-        weatherSenderService.produceWeather(key, weather);
+        weatherSenderService.produceMessage(key, messageDTO);
         Thread.sleep(500);
 
         verify(logService, never()).info(any(String.class));

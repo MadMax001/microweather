@@ -1,0 +1,67 @@
+package ru.madmax.pet.microweather.producer.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.madmax.pet.microweather.producer.configuration.WeatherRemoteServicesListBuilder;
+import ru.madmax.pet.microweather.producer.exception.AppProducerException;
+import ru.madmax.pet.microweather.producer.model.*;
+
+import static ru.madmax.pet.microweather.producer.model.MessageType.ERROR;
+import static ru.madmax.pet.microweather.producer.model.MessageType.WEATHER;
+
+@Service
+@AllArgsConstructor
+public class WeatherFacadeService implements WeatherService {
+    private final UUIDGeneratorService uuidGeneratorService;
+    private final WeatherRequestService requestService;
+    private final WeatherProducerService producerService;
+    private final WeatherRemoteServicesListBuilder servicesBuilder;
+    private final LogService logService;
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public String registerRequest(RequestDTO request) {
+        final String guid = uuidGeneratorService.randomGenerate();
+        RequestParams params = RequestParams.builder()
+                .guid(guid)
+                .url(servicesBuilder.getURLByKey(request.getSource()))
+                .build();
+        var monoWeather = requestService.sendRequest(request.getPoint(), params);
+        monoWeather.subscribe(
+                weather -> {
+                    logService.info(String.format("Receive response for guid %s",
+                            guid));
+                    try {
+                        producerService.produceMessage(
+                                guid,
+                                createMessage(WEATHER, weather));
+                    } catch (JsonProcessingException e) {
+                        throw new AppProducerException(e);
+                    }
+                },
+                error -> {
+                    logService.error(String.format("Error response for guid %s: %s:%s",
+                            guid,
+                            error.getClass().getName(),
+                            error.getMessage()));
+                    try {
+                        producerService.produceMessage(
+                                guid,
+                                createMessage(ERROR, error));
+                    } catch (JsonProcessingException e) {
+                        throw new AppProducerException(e);
+                    }
+                }
+        );
+        return guid;
+    }
+
+    private MessageDTO createMessage(MessageType type, Object object) throws JsonProcessingException {
+        var message = new MessageDTO();
+        message.setType(type);
+        message.setMessage(objectMapper.writeValueAsString(object));
+        return message;
+    }
+}

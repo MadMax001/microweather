@@ -7,5 +7,5 @@ import ru.madmax.pet.microweather.producer.model.Weather;
 
 
 public interface WeatherRequestService {
-    Mono<Weather> registerRequest(Point point, RequestParams params);
+    Mono<Weather> sendRequest(Point point, RequestParams params);
 }

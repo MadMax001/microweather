@@ -1,7 +1,7 @@
 package ru.madmax.pet.microweather.producer.service;
 
-import ru.madmax.pet.microweather.producer.model.Weather;
+import ru.madmax.pet.microweather.producer.model.MessageDTO;
 
 public interface WeatherProducerService {
-    void produceWeather(String key, Weather weather);
+    void produceMessage(String key, MessageDTO message);
 }

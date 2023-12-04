@@ -1,5 +1,7 @@
 package ru.madmax.pet.microweather.producer.service.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.AfterAll;
@@ -16,8 +18,7 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microweather.producer.model.Weather;
-import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
 import java.util.concurrent.BlockingQueue;
@@ -41,11 +42,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
 
-    KafkaMessageListenerContainer<String, Weather> container;
-    BlockingQueue<ConsumerRecord<String, Weather>> records;
+    KafkaMessageListenerContainer<String, MessageDTO> container;
+    BlockingQueue<ConsumerRecord<String, MessageDTO>> records;
 
     final WeatherKafkaSenderService weatherSenderService;
-    final ConsumerFactory<String, Weather> consumerFactory;
+    final ConsumerFactory<String, MessageDTO> consumerFactory;
+    final ObjectMapper objectMapper;
 
     @Value("${spring.kafka.topic.name}")
     String testTopic;
@@ -61,7 +63,7 @@ class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
         container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
         records = new LinkedBlockingQueue<>();
 
-        container.setupMessageListener((MessageListener<String, Weather>) records::add);
+        container.setupMessageListener((MessageListener<String, MessageDTO>) records::add);
         container.start();
         ContainerTestUtils.waitForAssignment(container, replicationFactor);
     }
@@ -72,15 +74,22 @@ class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
     }
 
     @Test
-    void sendWeatherMessageToProducer() throws InterruptedException {
-        final Weather weather = WeatherBuilder.aWeather().build();
-        final String key = "message-listener-1";
-        weatherSenderService.produceWeather(key, weather);
+    void sendWeatherMessageToProducer() throws InterruptedException, JsonProcessingException {
+        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
+                .withType(MessageType.WEATHER)
+                .withMessage(objectMapper.writeValueAsString(weather))
+                .build();
 
-        ConsumerRecord<String, Weather> message = records.poll(500, TimeUnit.MILLISECONDS);
+        final String key = "message-listener-1";
+        weatherSenderService.produceMessage(key, messageDTO);
+
+        ConsumerRecord<String, MessageDTO> message = records.poll(500, TimeUnit.MILLISECONDS);
         assertThat(message).isNotNull();
         assertThat(message.key()).isEqualTo(key);
-        assertThat(message.value()).isEqualTo(weather);
+        assertThat(message.value()).isNotNull();
+        assertThat(message.value().getMessage()).isEqualTo(messageDTO.getMessage());
+        assertThat(message.value().getType()).isEqualTo(MessageType.WEATHER);
 
         assertThat(records).isEmpty();
         }

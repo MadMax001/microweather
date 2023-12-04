@@ -7,7 +7,7 @@ import lombok.With;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aWeather")
 @With
-public class WeatherBuilder implements TestBuilder<Weather>{
+public class TestWeatherBuilder implements TestBuilder<Weather>{
     private long now = 1234567890;
     private String infoURL = "www.test.ru";
     private Double factTemp = 10.0;

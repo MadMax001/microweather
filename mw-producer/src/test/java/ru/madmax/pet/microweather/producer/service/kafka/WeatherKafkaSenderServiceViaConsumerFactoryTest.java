@@ -1,5 +1,7 @@
 package ru.madmax.pet.microweather.producer.service.kafka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microweather.producer.model.Weather;
-import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.LogService;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
@@ -35,32 +36,41 @@ import static org.mockito.Mockito.*;
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class WeatherKafkaSenderServiceViaConsumerFactoryTest {
-    private final WeatherKafkaSenderService weatherSenderService;
-    private final ConsumerFactory<String, Weather> consumerFactory;
+    final WeatherKafkaSenderService weatherSenderService;
+    final ConsumerFactory<String, MessageDTO> consumerFactory;
     @Value("${spring.kafka.topic.name}")
     String testTopic;
 
     @SpyBean
     LogService logService;
 
+    final ObjectMapper objectMapper;
+
     @Test
-    void sendWeather_andGetItFromConsumer() {
+    void sendWeather_andGetItFromConsumer() throws JsonProcessingException {
         try (
-                Consumer<String, Weather> consumer = consumerFactory
+                Consumer<String, MessageDTO> consumer = consumerFactory
                         .createConsumer("ConsumerFactoryTestGroup", null)
         ) {
             consumer.subscribe(Collections.singletonList(testTopic));
 
-            final Weather weather = WeatherBuilder.aWeather().build();
-            final String key = "consumer-factory-1";
-            weatherSenderService.produceWeather(key, weather);
+            final Weather weather = TestWeatherBuilder.aWeather().build();
+            final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
+                    .withType(MessageType.WEATHER)
+                    .withMessage(objectMapper.writeValueAsString(weather))
+                    .build();
 
-            ConsumerRecords<String, Weather> messages = consumer.poll(Duration.ofSeconds(3));
+            final String key = "consumer-factory-1";
+            weatherSenderService.produceMessage(key, messageDTO);
+
+            ConsumerRecords<String, MessageDTO> messages = consumer.poll(Duration.ofSeconds(3));
 
             assertThat(messages.count()).isEqualTo(1);
             assertThat(messages).singleElement().satisfies(singleRecord -> {
                 assertThat(singleRecord.key()).isEqualTo(key);
-                assertThat(singleRecord.value()).isEqualTo(weather);
+                assertThat(singleRecord.value()).isNotNull();
+                assertThat(singleRecord.value().getMessage()).isEqualTo(messageDTO.getMessage());
+                assertThat(singleRecord.value().getType()).isEqualTo(MessageType.WEATHER);
             });
 
             verify(logService, times(1)).info(any(String.class));

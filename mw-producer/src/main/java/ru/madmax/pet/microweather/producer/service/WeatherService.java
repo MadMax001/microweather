@@ -1,8 +1,7 @@
 package ru.madmax.pet.microweather.producer.service;
 
-import ru.madmax.pet.microweather.producer.model.Point;
-import ru.madmax.pet.microweather.producer.model.RequestParams;
+import ru.madmax.pet.microweather.producer.model.RequestDTO;
 
 public interface WeatherService {
-    void requestAndProduce(Point point, RequestParams params);
+    String registerRequest(RequestDTO request);
 }

@@ -16,7 +16,7 @@ spring:
     properties:
       "[isolation.level]": read_committed
     client-id: producer-tester
-    bootstrap-servers: ${spring.embedded.kafka.brokers}
+#    bootstrap-servers: ${spring.embedded.kafka.brokers}
     topic:
       name: test-simple-topic
     replication:

@@ -12,6 +12,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import ru.madmax.pet.microweather.producer.model.MessageDTO;
 import ru.madmax.pet.microweather.producer.model.Weather;
 
 import java.util.HashMap;
@@ -29,7 +30,7 @@ class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
     @Value("${spring.kafka.topic.name}")
     String sendClientTopic;
     @Bean
-    public ConsumerFactory<String, Weather> consumerFactory() {
+    public ConsumerFactory<String, MessageDTO> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -66,12 +67,12 @@ class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new JsonDeserializer<>(Weather.class, false)
+                new JsonDeserializer<>(MessageDTO.class, false)
         );
     }
     @Bean
-    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Weather>> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Weather> factory =
+    KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, MessageDTO>> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, MessageDTO> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);

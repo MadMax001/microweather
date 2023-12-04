@@ -1,26 +1,28 @@
 package ru.madmax.pet.microweather.producer.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
-import ru.madmax.pet.microweather.producer.model.Point;
-import ru.madmax.pet.microweather.producer.model.RequestParams;
-import ru.madmax.pet.microweather.producer.model.Weather;
-import ru.madmax.pet.microweather.producer.model.WeatherBuilder;
+import ru.madmax.pet.microweather.producer.model.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(SpringExtension.class)
+@SpringBootTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ActiveProfiles("test")
 class WeatherFacadeServiceTest {
-    final WeatherService weatherService;
+    final WeatherService weatherFacadeService;
 
     @MockBean
     WeatherRequestService requestService;
@@ -28,20 +30,69 @@ class WeatherFacadeServiceTest {
     @MockBean
     WeatherProducerService producerService;
 
+    @MockBean
+    UUIDGeneratorService uuidGeneratorService;
+
+    @MockBean
+    LogService logService;
+
+    @SpyBean
+    ObjectMapper objectMapper;
+
+    @Captor
+    ArgumentCaptor<Point> pointCaptor;
+
+    @Captor
+    ArgumentCaptor<String> infoCaptor;
+
+    @Captor
+    ArgumentCaptor<Throwable> errorCaptor;
+    @Captor
+    ArgumentCaptor<RequestParams> requestParamsCaptor;
+
+    @Captor
+    ArgumentCaptor<MessageDTO> messageDTOCaptor;
+
     @Test
-    void checkRequestAndProduceInvocations() {
-        Weather weather = WeatherBuilder.aWeather().build();
-        String guid = "test-guid-1";
-        RequestParams params = RequestParams.builder().guid(guid).build();
+    void registerRequest_happyPass() throws InterruptedException, JsonProcessingException {
+        final String guid = "test-guid-1";
+        when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        when(requestService.registerRequest(any(Point.class), params))
+        Weather weather = TestWeatherBuilder.aWeather().build();
+        MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
+                .withMessage(objectMapper.writeValueAsString(weather))
+                .build();
+        when(requestService.sendRequest(any(Point.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(weather));
-        doNothing().when(producerService).produceWeather(guid, weather);
+        doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
-        Point point = Point.builder().build();
-        weatherService.requestAndProduce(point, params);
+        doNothing().when(logService).info(any(String.class));
 
-        verify(requestService, times(1)).registerRequest(point, params);
-        verify(producerService, times(1)).produceWeather(guid, weather);
+        Point point = TestPointBuilder.aPoint().build();
+        RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
+                .withPoint(point)
+                .build();
+        String key = weatherFacadeService.registerRequest(requestDTO);
+        Thread.sleep(100);
+
+        verify(requestService, times(1)).sendRequest(pointCaptor.capture(), requestParamsCaptor.capture());
+        assertThat(key).isEqualTo(guid);
+        assertThat(pointCaptor.getValue()).isSameAs(point);
+        RequestParams requestParamsForVerify = requestParamsCaptor.getValue();
+        assertThat(requestParamsForVerify).isNotNull();
+        assertThat(requestParamsForVerify.getGuid()).isEqualTo(guid);
+        assertThat(requestParamsForVerify.getUrl()).isNotNull();
+        assertThat(requestParamsForVerify.getUrl().toString()).contains("http://value1.ru/value2");
+
+        verify(uuidGeneratorService, times(1)).randomGenerate();
+        verify(producerService, times(1)).produceMessage(eq(guid), messageDTOCaptor.capture());
+        MessageDTO messageDTOForVerify = messageDTOCaptor.getValue();
+        assertThat(messageDTOForVerify).isNotNull();
+        assertThat(messageDTOForVerify.getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(messageDTOForVerify.getMessage()).isEqualTo(messageDTO.getMessage());
+
+        verify(logService, times(1)).info(infoCaptor.capture());
+        String infoString = infoCaptor.getValue();
+        assertThat(infoString).contains(guid);
     }
 }
