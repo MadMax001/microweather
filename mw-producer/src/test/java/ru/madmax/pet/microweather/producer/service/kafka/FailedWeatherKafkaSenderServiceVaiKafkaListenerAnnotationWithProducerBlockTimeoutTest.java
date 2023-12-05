@@ -27,8 +27,7 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @SpringBootTest(properties = { "spring.kafka.producer.properties[max.block.ms]=1" })
 @EmbeddedKafka(bootstrapServersProperty = "${spring.kafka.bootstrap-servers}",
-        topics = "${spring.kafka.topic.name}",
-        partitions = 1
+        topics = "${spring.kafka.topic.name}"
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)

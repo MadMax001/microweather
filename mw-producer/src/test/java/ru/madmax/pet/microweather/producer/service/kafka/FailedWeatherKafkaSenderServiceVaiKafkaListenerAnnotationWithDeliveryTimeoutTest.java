@@ -32,8 +32,7 @@ import static org.mockito.Mockito.*;
         "spring.kafka.producer.properties[retries]=3"
 })
 @EmbeddedKafka(bootstrapServersProperty = "${spring.kafka.bootstrap-servers}",
-        topics = "${spring.kafka.topic.name}",
-        partitions = 1
+        topics = "${spring.kafka.topic.name}"
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)

@@ -14,9 +14,6 @@ spring:
     bootstrap-servers: localhost:9093
     topic:
       name: test-simple-topic
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     replication:
       factor: 1
     partition:

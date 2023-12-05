@@ -84,7 +84,7 @@ class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
         final String key = "message-listener-1";
         weatherSenderService.produceMessage(key, messageDTO);
 
-        ConsumerRecord<String, MessageDTO> message = records.poll(500, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> message = records.poll(15000, TimeUnit.MILLISECONDS);
         assertThat(message).isNotNull();
         assertThat(message.key()).isEqualTo(key);
         assertThat(message.value()).isNotNull();

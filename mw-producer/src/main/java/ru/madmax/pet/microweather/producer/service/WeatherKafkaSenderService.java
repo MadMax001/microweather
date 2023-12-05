@@ -8,6 +8,8 @@ import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 import ru.madmax.pet.microweather.producer.model.MessageDTO;
 
 
+import java.util.function.BiConsumer;
+
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -15,16 +17,18 @@ import static java.util.Objects.nonNull;
 public class WeatherKafkaSenderService implements WeatherProducerService {
 
     private final String sendClientTopic;
-    private final LogService logService;
-
     private final KafkaTemplate<String , MessageDTO> kafkaTemplate;
+    private final BiConsumer<String,MessageDTO> successSendingHandler;
+    private final BiConsumer<String,Throwable> errorSendingHandler;
 
     public WeatherKafkaSenderService(@Value("${spring.kafka.topic.name}") String sendClientTopic,
                                      KafkaTemplate<String, MessageDTO> kafkaTemplate,
-                                     LogService logService) {
+                                     BiConsumer<String,MessageDTO> successSendingHandler,
+                                     BiConsumer<String,Throwable> errorSendingHandler) {
         this.sendClientTopic = sendClientTopic;
         this.kafkaTemplate = kafkaTemplate;
-        this.logService = logService;
+        this.successSendingHandler = successSendingHandler;
+        this.errorSendingHandler = errorSendingHandler;
     }
 
     @Override
@@ -34,18 +38,12 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
 
             sendResult.whenComplete((result, ex) -> {
                 if (isNull(ex)) {
-                    logService.info(String.format("Successful sending[%s]: %s",
-                            key,
-                            result));
+                    if (nonNull(successSendingHandler))
+                        successSendingHandler.accept(result.getProducerRecord().key(),
+                                                 result.getProducerRecord().value());
                 } else {
-                    logService.error(String.format("Error on sending[%s]: %s: %s%nCause: %s: %s",
-                            key,
-                            ex.getClass().getName(),
-                            ex.getMessage(),
-                            (nonNull(ex.getCause())? ex.getCause().getClass().getName(): ""),
-                            (nonNull(ex.getCause())? ex.getMessage(): "")
-                            ));
-
+                    if (nonNull(errorSendingHandler))
+                        errorSendingHandler.accept(key, ex);
                 }
             });
 

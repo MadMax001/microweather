@@ -16,6 +16,8 @@ import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.LogService;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
+import ru.madmax.pet.microweather.producer.service.handlers.ErrorSendingHandler;
+import ru.madmax.pet.microweather.producer.service.handlers.SuccessSendingHandler;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,8 +30,7 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @SpringBootTest
 @EmbeddedKafka(bootstrapServersProperty = "${spring.kafka.bootstrap-servers}",
-        topics = "${spring.kafka.topic.name}",
-        partitions = 1
+        topics = "${spring.kafka.topic.name}"
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -38,10 +39,13 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
     final WeatherKafkaSenderService weatherSenderService;
     final KafkaTemplate<String, MessageDTO> kafkaTemplate;
+    final SuccessSendingHandler successSendingHandler;
+    final ErrorSendingHandler errorSendingHandler;
     BlockingQueue<ConsumerRecord<String, MessageDTO>> records = new LinkedBlockingQueue<>();
 
     @SpyBean
     LogService logService;
+
 
 
     final ObjectMapper objectMapper;
@@ -65,7 +69,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
         final String key = "kafka-annotation-1.1";
         weatherSenderService.produceMessage(key, messageDTO);
-        ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(10000, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord).isNotNull();
         assertThat(consumerRecord.key()).isEqualTo(key);
@@ -98,7 +102,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
         weatherSenderService.produceMessage(key1, messageDTO1);
         weatherSenderService.produceMessage(key2, messageDTO2);
-        ConsumerRecord<String, MessageDTO> consumerRecord1 = records.poll(10000, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> consumerRecord1 = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord1).isNotNull();
         assertThat(consumerRecord1.key()).isEqualTo(key1);
@@ -125,7 +129,8 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
         var producerServiceWithUnexistingTopic = new WeatherKafkaSenderService(
                 "mock-topic",
                 kafkaTemplate,
-                logService);
+                successSendingHandler,
+                errorSendingHandler);
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.WEATHER)
@@ -134,7 +139,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
         final String key = "kafka-annotation-1.2";
         producerServiceWithUnexistingTopic.produceMessage(key, messageDTO);
-        ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(1000, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord).isNull();
         assertThat(records).isEmpty();

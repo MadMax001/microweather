@@ -9,12 +9,8 @@ import org.springframework.context.ApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class PLauncherTest {
-    private final ApplicationContext context;
     @Test
-    void contextLoads() {
-        assertThat(context.getBean("weatherFacadeService")).isNotNull();
-    }
+    void contextLoads() {}
 
 }

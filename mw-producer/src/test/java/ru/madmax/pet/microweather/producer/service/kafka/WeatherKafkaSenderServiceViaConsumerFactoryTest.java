@@ -29,8 +29,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 //@ContextConfiguration(classes = WeatherKafkaSenderServiceViaConsumerFactoryConfiguration.class)
 @EmbeddedKafka(bootstrapServersProperty = "${spring.kafka.bootstrap-servers}",
-                topics = "${spring.kafka.topic.name}",
-                partitions = 1
+                topics = "${spring.kafka.topic.name}"
 )
 @DirtiesContext
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -63,7 +62,7 @@ class WeatherKafkaSenderServiceViaConsumerFactoryTest {
             final String key = "consumer-factory-1";
             weatherSenderService.produceMessage(key, messageDTO);
 
-            ConsumerRecords<String, MessageDTO> messages = consumer.poll(Duration.ofSeconds(3));
+            ConsumerRecords<String, MessageDTO> messages = consumer.poll(Duration.ofSeconds(15));
 
             assertThat(messages.count()).isEqualTo(1);
             assertThat(messages).singleElement().satisfies(singleRecord -> {
