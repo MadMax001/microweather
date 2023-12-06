@@ -1,6 +1,6 @@
-package ru.madmax.pet.microweather.yandex.model;
+package ru.madmax.pet.microweather.common.model;
 
-import lombok.*;
+import lombok.Data;
 
 @Data
 public class Weather {

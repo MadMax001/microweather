@@ -3,6 +3,7 @@ package ru.madmax.pet.microweather.producer.model;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import ru.madmax.pet.microweather.common.model.Point;
 
 @Data
 public class RequestDTO {                                                                       //todo тесты на валидацию

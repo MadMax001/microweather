@@ -3,7 +3,7 @@ package ru.madmax.pet.microweather.producer.service.handlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-import ru.madmax.pet.microweather.producer.model.MessageDTO;
+import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.producer.service.LogService;
 
 import java.util.function.BiConsumer;

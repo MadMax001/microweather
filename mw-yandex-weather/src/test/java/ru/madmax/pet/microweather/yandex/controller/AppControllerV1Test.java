@@ -12,10 +12,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
+import ru.madmax.pet.microweather.common.model.Point;
+import ru.madmax.pet.microweather.common.model.TestPointBuilder;
+import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
 import ru.madmax.pet.microweather.yandex.exception.AppYandexException;
-import ru.madmax.pet.microweather.yandex.model.Point;
-import ru.madmax.pet.microweather.yandex.model.PointBuilder;
-import ru.madmax.pet.microweather.yandex.model.WeatherBuilder;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
 import static org.mockito.Mockito.doThrow;
@@ -33,8 +33,8 @@ class AppControllerV1Test {
     @Test
     void weatherCorrectRequest() throws Exception {
 
-        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
-        String stringContent = new ObjectMapper().writeValueAsString(PointBuilder.aPoint().build());
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
+        String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
 
         webTestClient
                 .post()
@@ -58,7 +58,7 @@ class AppControllerV1Test {
 
     @Test
     void weatherRequest_withoutLatitude_AndGet400Status() {
-        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = "{\"lon\":46.001373}";
         webTestClient
                 .post()
@@ -73,7 +73,7 @@ class AppControllerV1Test {
 
     @Test
     void weatherRequest_withoutLongitude_AndGet400Status()  {
-        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = "{\"lat\":51.534986}";
         webTestClient
                 .post()
@@ -88,8 +88,8 @@ class AppControllerV1Test {
 
     @Test
     void weatherRequest_withoutGUIDHeader_AndGet400Status() throws Exception {
-        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(WeatherBuilder.aWeather().build()));
-        String stringContent = new ObjectMapper().writeValueAsString(PointBuilder.aPoint().build());
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
+        String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
         webTestClient
                 .post()
                 .uri("/api/v1/weather")
@@ -105,7 +105,7 @@ class AppControllerV1Test {
     void weatherRequest_AppExceptionInService_AndGet400Status() throws JsonProcessingException {
         AppYandexException error = new AppYandexException("test error");
         doThrow(error).when(loaderService).requestWeatherByPoint(any(Point.class));
-        String stringContent = new ObjectMapper().writeValueAsString(PointBuilder.aPoint().build());
+        String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
 
         webTestClient
                 .post()

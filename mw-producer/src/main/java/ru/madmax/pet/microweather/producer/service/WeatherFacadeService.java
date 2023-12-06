@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.madmax.pet.microweather.common.model.MessageDTO;
+import ru.madmax.pet.microweather.common.model.MessageType;
 import ru.madmax.pet.microweather.producer.configuration.WeatherRemoteServicesListBuilder;
 import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 import ru.madmax.pet.microweather.producer.model.*;
 
-import static ru.madmax.pet.microweather.producer.model.MessageType.ERROR;
-import static ru.madmax.pet.microweather.producer.model.MessageType.WEATHER;
+import static ru.madmax.pet.microweather.common.model.MessageType.ERROR;
+import static ru.madmax.pet.microweather.common.model.MessageType.WEATHER;
 
 @Service
 @AllArgsConstructor

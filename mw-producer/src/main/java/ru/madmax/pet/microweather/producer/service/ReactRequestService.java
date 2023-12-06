@@ -8,9 +8,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
-import ru.madmax.pet.microweather.producer.model.Point;
+import ru.madmax.pet.microweather.common.model.Point;
+import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.producer.model.RequestParams;
-import ru.madmax.pet.microweather.producer.model.Weather;
 
 import java.time.Duration;
 

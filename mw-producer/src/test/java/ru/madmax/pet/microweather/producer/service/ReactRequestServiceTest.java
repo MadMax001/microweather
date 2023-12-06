@@ -20,6 +20,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microweather.common.model.Point;
+import ru.madmax.pet.microweather.common.model.TestPointBuilder;
+import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
+import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.producer.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microweather.producer.model.*;
 

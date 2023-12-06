@@ -12,6 +12,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
+import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.producer.model.*;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -18,6 +18,7 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
+import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 

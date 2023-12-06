@@ -18,11 +18,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microweather.common.model.Point;
+import ru.madmax.pet.microweather.common.model.TestPointBuilder;
+import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
+import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.yandex.configuration.HttpClientConfiguration;
-import ru.madmax.pet.microweather.yandex.model.Point;
-import ru.madmax.pet.microweather.yandex.model.PointBuilder;
-import ru.madmax.pet.microweather.yandex.model.Weather;
-import ru.madmax.pet.microweather.yandex.model.WeatherBuilder;
 
 import java.io.IOException;
 
@@ -56,14 +56,14 @@ class ForecastWeatherLoaderServiceTest {
 
     @Test
     void checkForRemoteRequest() throws JsonProcessingException, InterruptedException {
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = new ObjectMapper().writeValueAsString(weather);
 
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringContent));
 
-        Point point = PointBuilder.aPoint().build();
+        Point point = TestPointBuilder.aPoint().build();
 
         Mono<Weather> monoWeather = loaderService.requestWeatherByPoint(point);
 
@@ -86,7 +86,7 @@ class ForecastWeatherLoaderServiceTest {
 
     @Test
     void whenServerIsUnavailableOnce_AndAnswerAfterOneRetry_CheckRetry() throws JsonProcessingException, InterruptedException {
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = new ObjectMapper().writeValueAsString(weather);
 
         remoteMockServer.enqueue(new MockResponse()
@@ -95,7 +95,7 @@ class ForecastWeatherLoaderServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringContent));
 
-        Point point = PointBuilder.aPoint().build();
+        Point point = TestPointBuilder.aPoint().build();
         Mono<Weather> monoWeather = loaderService.requestWeatherByPoint(point);
 
         StepVerifier.create(monoWeather)
@@ -118,7 +118,7 @@ class ForecastWeatherLoaderServiceTest {
 
     @Test
     void whenServerIsUnavailable2Times_AndAnswerAfterOneRetry_CheckRetry_MaxRetryAttemptsExceed() throws JsonProcessingException, InterruptedException {
-        final Weather weather = WeatherBuilder.aWeather().build();
+        final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = new ObjectMapper().writeValueAsString(weather);
 
         remoteMockServer.enqueue(new MockResponse()
@@ -129,7 +129,7 @@ class ForecastWeatherLoaderServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringContent));
 
-        Point point = PointBuilder.aPoint().build();
+        Point point = TestPointBuilder.aPoint().build();
         Mono<Weather> monoWeather = loaderService.requestWeatherByPoint(point);
 
         StepVerifier.create(monoWeather)

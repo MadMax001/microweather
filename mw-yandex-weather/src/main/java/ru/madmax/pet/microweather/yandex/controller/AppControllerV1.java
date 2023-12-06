@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import ru.madmax.pet.microweather.yandex.model.Point;
-import ru.madmax.pet.microweather.yandex.model.Weather;
+import ru.madmax.pet.microweather.common.model.Point;
+import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
 
@@ -20,7 +20,7 @@ public class AppControllerV1 {
 
     @PostMapping("/weather")
     public ResponseEntity<Mono<Weather>> weatherRequest(@RequestBody @Valid Point point,
-                                                       @RequestHeader(name="request-guid") String requestGuid) {
+                                                        @RequestHeader(name="request-guid") String requestGuid) {
 
         var monoWeather = loaderService.requestWeatherByPoint(
                 Point.builder()

@@ -16,7 +16,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>mw-producer</module>
-        <module>yandex-weather</module>
+        <module>mw-yandex-weather</module>
+        <module>mw-consumer-db</module>
+        <module>mw-common</module>
+        <module>mw-common-test</module>
     </modules>
 
     <properties>
