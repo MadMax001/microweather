@@ -3,6 +3,7 @@ package ru.madmax.pet.microweather.producer.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 import ru.madmax.pet.microweather.producer.model.MessageDTO;
@@ -18,12 +19,12 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
 
     private final String sendClientTopic;
     private final KafkaTemplate<String , MessageDTO> kafkaTemplate;
-    private final BiConsumer<String,MessageDTO> successSendingHandler;
+    private final BiConsumer<String, SendResult<String, MessageDTO>> successSendingHandler;
     private final BiConsumer<String,Throwable> errorSendingHandler;
 
     public WeatherKafkaSenderService(@Value("${spring.kafka.topic.name}") String sendClientTopic,
                                      KafkaTemplate<String, MessageDTO> kafkaTemplate,
-                                     BiConsumer<String,MessageDTO> successSendingHandler,
+                                     BiConsumer<String,SendResult<String, MessageDTO>> successSendingHandler,
                                      BiConsumer<String,Throwable> errorSendingHandler) {
         this.sendClientTopic = sendClientTopic;
         this.kafkaTemplate = kafkaTemplate;
@@ -39,8 +40,7 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
             sendResult.whenComplete((result, ex) -> {
                 if (isNull(ex)) {
                     if (nonNull(successSendingHandler))
-                        successSendingHandler.accept(result.getProducerRecord().key(),
-                                                 result.getProducerRecord().value());
+                        successSendingHandler.accept(key, result);
                 } else {
                     if (nonNull(errorSendingHandler))
                         errorSendingHandler.accept(key, ex);

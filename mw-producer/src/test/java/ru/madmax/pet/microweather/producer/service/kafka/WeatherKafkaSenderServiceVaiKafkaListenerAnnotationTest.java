@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -46,7 +48,8 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
     @SpyBean
     LogService logService;
 
-
+    @Captor
+    ArgumentCaptor<String> logInfoCaptor;
 
     final ObjectMapper objectMapper;
 
@@ -60,7 +63,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
 
     @Test
-    void sendWeatherMessageToProducer() throws InterruptedException, JsonProcessingException {
+    void sendWeatherMessageToProducer_AndConsumerGetMessage() throws InterruptedException, JsonProcessingException {
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.WEATHER)
@@ -78,12 +81,18 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
         assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
         assertThat(records).isEmpty();
 
-        verify(logService, times(1)).info(any(String.class));
+        verify(logService, times(1)).info(logInfoCaptor.capture());
+        String logInfoString = logInfoCaptor.getValue();
+        assertThat(logInfoString).contains(
+                "Successful sending",
+                key,
+                messageDTO.getMessage()
+        );
         verify(logService, never()).error(any(Throwable.class));
     }
 
     @Test
-    void sendTwoWeatherMessagesToProducerOneAfterAnother() throws InterruptedException, JsonProcessingException {
+    void sendTwoWeatherMessagesToProducerOneAfterAnother_andConsumerGetTwoMessages() throws InterruptedException, JsonProcessingException {
         final Weather weather1 = TestWeatherBuilder.aWeather().withNow(1L).build();
         final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.WEATHER)
@@ -120,12 +129,22 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
         assertThat(records).isEmpty();
 
-        verify(logService, times(2)).info(any(String.class));
-        verify(logService, never()).error(any(Throwable.class));
-    }
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        var logInfoStrings = logInfoCaptor.getAllValues();
+        assertThat(logInfoStrings.get(0)).contains(
+                "Successful sending",
+                key1,
+                messageDTO1.getMessage()
+        );
+        assertThat(logInfoStrings.get(1)).contains(
+                "Successful sending",
+                key2,
+                messageDTO2.getMessage()
+        );
+        verify(logService, never()).error(any(Throwable.class));    }
 
     @Test
-    void tryToSendToUnexistingTopic() throws InterruptedException, JsonProcessingException {
+    void tryToSendToUnexistingTopic_andConsumerDoesNotGetAnyMessage() throws InterruptedException, JsonProcessingException {
         var producerServiceWithUnexistingTopic = new WeatherKafkaSenderService(
                 "mock-topic",
                 kafkaTemplate,
@@ -137,7 +156,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
                 .withMessage(objectMapper.writeValueAsString(weather))
                 .build();
 
-        final String key = "kafka-annotation-1.2";
+        final String key = "kafka-annotation-3.1";
         producerServiceWithUnexistingTopic.produceMessage(key, messageDTO);
         ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(15000, TimeUnit.MILLISECONDS);
 
@@ -149,4 +168,54 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
 
     }
 
+    @Test
+    void sendTwoWeatherMessagesWitSameKeysToProducer_andConsumeTwoMessagesInSameOrder() throws InterruptedException, JsonProcessingException {
+        final Weather weather1 = TestWeatherBuilder.aWeather().withNow(1L).build();
+        final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
+                .withType(MessageType.WEATHER)
+                .withMessage(objectMapper.writeValueAsString(weather1))
+                .build();
+
+        final Weather weather2 = TestWeatherBuilder.aWeather().withNow(2L).build();
+        final MessageDTO messageDTO2 = TestMessageDTOBuilder.aMessageDTO()
+                .withType(MessageType.WEATHER)
+                .withMessage(objectMapper.writeValueAsString(weather2))
+                .build();
+
+        final String key = "kafka-annotation-4.1";
+        weatherSenderService.produceMessage(key, messageDTO1);
+        weatherSenderService.produceMessage(key, messageDTO2);
+        ConsumerRecord<String, MessageDTO> consumerRecord1 = records.poll(15000, TimeUnit.MILLISECONDS);
+
+        assertThat(consumerRecord1).isNotNull();
+        assertThat(consumerRecord1.key()).isEqualTo(key);
+        assertThat(consumerRecord1.value()).isNotNull();
+        assertThat(consumerRecord1.value().getMessage()).isEqualTo(messageDTO1.getMessage());
+        assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.WEATHER);
+
+        ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(50, TimeUnit.MILLISECONDS);
+
+        assertThat(consumerRecord2).isNotNull();
+        assertThat(consumerRecord2.key()).isEqualTo(key);
+        assertThat(consumerRecord2.value()).isNotNull();
+        assertThat(consumerRecord2.value().getMessage()).isEqualTo(messageDTO2.getMessage());
+        assertThat(consumerRecord2.value().getType()).isEqualTo(MessageType.WEATHER);
+
+        assertThat(records).isEmpty();
+
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        var logInfoStrings = logInfoCaptor.getAllValues();
+        assertThat(logInfoStrings.get(0)).contains(
+                "Successful sending",
+                key,
+                messageDTO1.getMessage()
+        );
+        assertThat(logInfoStrings.get(1)).contains(
+                "Successful sending",
+                key,
+                messageDTO2.getMessage()
+        );
+        verify(logService, never()).error(any(Throwable.class));
+
+    }
 }
