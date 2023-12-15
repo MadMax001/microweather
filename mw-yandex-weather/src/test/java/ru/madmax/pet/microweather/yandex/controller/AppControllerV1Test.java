@@ -18,6 +18,7 @@ import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
 import ru.madmax.pet.microweather.yandex.exception.AppYandexException;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,11 +33,13 @@ class AppControllerV1Test {
 
     @Test
     void weatherCorrectRequest() throws Exception {
+        var objectMapper = new ObjectMapper();
+        var weather = TestWeatherBuilder.aWeather().build();
+        String weatherStr = objectMapper.writeValueAsString(weather);
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(weather));
+        String stringContent = objectMapper.writeValueAsString(TestPointBuilder.aPoint().build());
 
-        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
-        String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
-
-        webTestClient
+        var receivedContent = webTestClient
                 .post()
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -46,14 +49,11 @@ class AppControllerV1Test {
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().valueEquals("request-guid", "testguid")
-/*
-                .expectBody(Greeting.class).value(greeting -> {
-                    assertThat(greeting.getMessage()).isEqualTo("Hello, Spring!");
-                });
-*/
                 .returnResult(String.class)
                 .getResponseBody()
                 .blockFirst();
+
+        assertThat(receivedContent).isEqualTo(weatherStr);
     }
 
     @Test
