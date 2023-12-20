@@ -19,7 +19,7 @@ public class AppControllerV1 {
     private final WeatherLoaderService loaderService;
 
     @PostMapping("/weather")
-    public ResponseEntity<Mono<Weather>> weatherRequest(@RequestBody @Valid Point point,
+    public Mono<ResponseEntity<Weather>> weatherRequest(@RequestBody @Valid Point point,
                                                         @RequestHeader(name="request-guid") String requestGuid) {
 
         var monoWeather = loaderService.requestWeatherByPoint(
@@ -28,9 +28,20 @@ public class AppControllerV1 {
                         .lon(point.getLon())
                         .build()
         );
-        return ResponseEntity.ok()
-                .header("request-guid", requestGuid)
-                .body(monoWeather);
+        return monoWeather
+                .map(weather ->
+                        ResponseEntity
+                                .ok()
+                                .header("request-guid", requestGuid)
+                                .body(weather)
+                )
+                .onErrorResume(error->
+                        Mono.just(ResponseEntity
+                                .internalServerError()
+                                .header("request-guid", requestGuid)
+                                .header("request-error", error.getMessage())
+                                .body(null))
+                );
     }
 
 

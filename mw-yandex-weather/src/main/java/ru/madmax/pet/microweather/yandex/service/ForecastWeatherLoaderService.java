@@ -19,10 +19,12 @@ public class ForecastWeatherLoaderService implements WeatherLoaderService {
     private final WebClient webClient;
     private final Integer yaWeatherRetryDuration;
     private final Integer yaWeatherRetryAttempts;
+    private final String yaWeatherPath;
 
     public ForecastWeatherLoaderService(HttpClient httpClient,
                                         @Value("${app.weather.key}") String yaWeatherAPIKey,
                                         @Value("${app.weather.url}") String yaWeatherURL,
+                                        @Value("${app.weather.path}") String yaWeatherPath,
                                         @Value("${app.weather.retry.duration}") Integer yaWeatherRetryDuration,
                                         @Value("${app.weather.retry.attempts}") Integer yaWeatherRetryAttempts) {
         this.webClient = WebClient.builder()
@@ -32,6 +34,7 @@ public class ForecastWeatherLoaderService implements WeatherLoaderService {
                 .build();
         this.yaWeatherRetryDuration = yaWeatherRetryDuration;
         this.yaWeatherRetryAttempts = yaWeatherRetryAttempts;
+        this.yaWeatherPath = yaWeatherPath;
     }
 
 
@@ -40,15 +43,11 @@ public class ForecastWeatherLoaderService implements WeatherLoaderService {
         return webClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/v2/forecast")
+                        .path(yaWeatherPath)
                         .queryParam("lat", point.getLat().toString())
                         .queryParam("lon", point.getLon().toString())
                         .build())
                 .retrieve()
-//                .onStatus(HttpStatus::is4xxClientError,
-//                        error -> Mono.error(new RuntimeException("API not found")))
-//                .onStatus(HttpStatus::is5xxServerError,
-//                        error -> Mono.error(new RuntimeException("Server is not responding")))
                 .bodyToMono(Weather.class)
                 .retryWhen(Retry.backoff(yaWeatherRetryAttempts, Duration.ofMillis(yaWeatherRetryDuration)));
     }

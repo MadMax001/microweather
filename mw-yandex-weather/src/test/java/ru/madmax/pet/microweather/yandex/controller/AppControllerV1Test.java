@@ -12,16 +12,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
-import ru.madmax.pet.microweather.common.model.Point;
-import ru.madmax.pet.microweather.common.model.TestPointBuilder;
-import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
+import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.yandex.exception.AppYandexException;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @WebFluxTest(controllers = {AppControllerV1.class, ExceptionHandlerController.class})                   //аннотация автоматом конфигурит webTestClient
@@ -65,14 +63,17 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("guid", "testguid")
+                .header("request-guid", "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().is4xxClientError();
+                .expectStatus().is4xxClientError()
+                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().valueEquals("request-error", "Latitude is not set");
+
     }
 
     @Test
-    void weatherRequest_withoutLongitude_AndGet400Status()  {
+    void weatherRequest_withoutLongitude_AndGet400Status() {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = "{\"lat\":51.534986}";
         webTestClient
@@ -80,10 +81,13 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("guid", "testguid")
+                .header("request-guid", "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().is4xxClientError();
+                .expectStatus().is4xxClientError()
+                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().valueEquals("request-error", "Longitude is not set");
+
     }
 
     @Test
@@ -95,10 +99,13 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-//                .header("guid", "testguid")
+//                .header("request-guid", "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().is4xxClientError();
+                .expectStatus().is4xxClientError()
+                .expectHeader().doesNotExist("request-guid")
+                .expectHeader().value("request-error", containsString("Required header 'request-guid' is not present"));
+
     }
 
     @Test
@@ -115,7 +122,55 @@ class AppControllerV1Test {
                 .header("request-guid", "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().is5xxServerError();
+                .expectStatus().is5xxServerError()
+                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().valueEquals("request-error", "test error");
+
+
+    }
+
+    @Test
+    void weatherRequest_andThrowsErrorInMono_andCheckHeaders() throws JsonProcessingException {
+        var objectMapper = new ObjectMapper();
+        Throwable error = new AppYandexException("Error in process");
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.error(error));
+
+        String stringContent = objectMapper.writeValueAsString(TestPointBuilder.aPoint().build());
+        var receivedContent = webTestClient
+                .post()
+                .uri("/api/v1/weather")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(stringContent))
+                .header("request-guid", "testguid")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().valueEquals("request-error", "Error in process")
+                .returnResult(String.class)
+                .getResponseBody()
+                .blockFirst();
+
+        assertThat(receivedContent).isNull();
+
+    }
+
+    @Test
+    void weatherRequest_whenLatitudeIsNotNumberValue_AndGet400Status() {
+        when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
+        String stringContent = "{\"lon\":46.001373, \"lat\":\"51A\"}";
+        webTestClient
+                .post()
+                .uri("/api/v1/weather")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(stringContent))
+                .header("request-guid", "testguid")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().value("request-error",
+                        containsString("Cannot deserialize value of type `java.lang.Double` from String"));
 
     }
 }

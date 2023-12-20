@@ -45,7 +45,7 @@ class ForecastWeatherLoaderServiceTest {
         remoteMockServer.start();
         String url = remoteMockServer.url("").toString();
         String token = "test-token";
-        loaderService = new ForecastWeatherLoaderService(httpClient, token, url, 100, 1);
+        loaderService = new ForecastWeatherLoaderService(httpClient, token, url, "", 100, 1);
     }
 
     @AfterEach
@@ -79,8 +79,7 @@ class ForecastWeatherLoaderServiceTest {
                 point.getLat().toString(),
                 point.getLon().toString(),
                 "lat=",
-                "lon=",
-                "forecast");
+                "lon=");
 
     }
 
@@ -111,8 +110,7 @@ class ForecastWeatherLoaderServiceTest {
                     point.getLat().toString(),
                     point.getLon().toString(),
                     "lat=",
-                    "lon=",
-                    "forecast");
+                    "lon=");
         }
     }
 
@@ -146,8 +144,7 @@ class ForecastWeatherLoaderServiceTest {
                     point.getLat().toString(),
                     point.getLon().toString(),
                     "lat=",
-                    "lon=",
-                    "forecast");
+                    "lon=");
         }
     }
 
