@@ -13,6 +13,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.producer.model.*;
 
@@ -77,11 +78,13 @@ class WeatherFacadeServiceTest {
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
                 .withPoint(point)
                 .build();
-        String key = weatherFacadeService.registerRequest(requestDTO);
-        Thread.sleep(100);
+        Mono<String> keyMono = weatherFacadeService.registerRequest(requestDTO);
+        StepVerifier.create(keyMono)
+                .expectNext(guid)
+                .expectComplete()
+                .verify();
 
         verify(requestService, times(1)).sendRequest(pointCaptor.capture(), requestParamsCaptor.capture());
-        assertThat(key).isEqualTo(guid);
         assertThat(pointCaptor.getValue()).isSameAs(point);
         RequestParams requestParamsForVerify = requestParamsCaptor.getValue();
         assertThat(requestParamsForVerify).isNotNull();
@@ -122,9 +125,41 @@ class WeatherFacadeServiceTest {
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
                 .withPoint(point)
                 .build();
-        String key = weatherFacadeService.registerRequest(requestDTO);
+
+        weatherFacadeService.registerRequest(requestDTO);
         var returnFacadeMethodTime = System.nanoTime();
+
         Thread.sleep(2000);
-        assertThat((int)((returnMockMethodTimeVal.get() - returnFacadeMethodTime) / 1_000_000_000)).isEqualTo(1);
+        assertThat((int)((returnMockMethodTimeVal.get() - returnFacadeMethodTime) / 1_000_000_000)).isOne();
     }
+
+    @Test
+    void test1() throws InterruptedException {
+        final String guid = "test-guid-1";
+        when(uuidGeneratorService.randomGenerate()).thenAnswer((Answer<String>) invocationOnMock -> {
+            Thread.sleep(1000);
+            return guid;
+        });
+
+        Weather weather = TestWeatherBuilder.aWeather().build();
+        when(requestService.sendRequest(any(Point.class), any(RequestParams.class)))
+                .thenReturn(Mono.just(weather));
+
+        doNothing().when(logService).info(any(String.class));
+
+        Point point = TestPointBuilder.aPoint().build();
+        RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
+                .withPoint(point)
+                .build();
+
+        long startTime = System.nanoTime();
+        Mono<String> keyMono = weatherFacadeService.registerRequest(requestDTO);
+        var returnFacadeMethodTime = System.nanoTime();
+        keyMono.block();
+        var keyGenerationTime = System.nanoTime();
+
+        assertThat((int)((returnFacadeMethodTime - startTime) / 1_000_000_000)).isZero();
+        assertThat((int)((keyGenerationTime - returnFacadeMethodTime) / 1_000_000_000)).isOne();
+    }
+
 }
