@@ -13,7 +13,7 @@ spring:
   kafka:
     bootstrap-servers: localhost:9093
     topic:
-      name: test-simple-topic
+      name: weather-topic
     replication:
       factor: 1
     partition:
