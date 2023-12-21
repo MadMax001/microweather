@@ -1,0 +1,9 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9093
+    topic:
+      name: weather-topic
+    consumer:
+      group-id: mw-group-db
+      client-id: appcons
+      auto-offset-reset: earliest
