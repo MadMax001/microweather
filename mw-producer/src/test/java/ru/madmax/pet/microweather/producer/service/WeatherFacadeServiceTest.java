@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -14,6 +15,9 @@ import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.producer.model.*;
+
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -95,5 +99,32 @@ class WeatherFacadeServiceTest {
         verify(logService, times(1)).info(infoCaptor.capture());
         String infoString = infoCaptor.getValue();
         assertThat(infoString).contains(guid);
+    }
+
+    @Test
+    void requestServiceReturnResultAfter1SecondDelay_AndFacadeMethodReturnsKeyFirstly_AndProducerServiceInvokesAfter()
+            throws InterruptedException {
+        final String guid = "test-guid-1";
+        when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
+
+        Weather weather = TestWeatherBuilder.aWeather().build();
+        when(requestService.sendRequest(any(Point.class), any(RequestParams.class)))
+                .thenReturn(Mono.just(weather).delayElement(Duration.ofSeconds(1)));
+
+        doNothing().when(logService).info(any(String.class));
+        final AtomicLong returnMockMethodTimeVal = new AtomicLong(0);
+        doAnswer((Answer<Void>) invocationOnMock -> {
+            returnMockMethodTimeVal.set(System.nanoTime());
+            return null;
+        }).when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
+
+        Point point = TestPointBuilder.aPoint().build();
+        RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
+                .withPoint(point)
+                .build();
+        String key = weatherFacadeService.registerRequest(requestDTO);
+        var returnFacadeMethodTime = System.nanoTime();
+        Thread.sleep(2000);
+        assertThat((int)((returnMockMethodTimeVal.get() - returnFacadeMethodTime) / 1_000_000_000)).isEqualTo(1);
     }
 }
