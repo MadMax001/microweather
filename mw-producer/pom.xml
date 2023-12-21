@@ -111,10 +111,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
+<!--
                 <configuration>
                     <parallel>suites</parallel>
                     <threadCountSuites>10</threadCountSuites>
                 </configuration>
+-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
