@@ -19,6 +19,12 @@ import ru.madmax.pet.microweather.common.model.MessageDTO;
 @Configuration
 @EnableKafka
 public class KafkaConfiguration {
+
+    /*
+    // Инициализацию ObjectMapper-а делаем в виде бина
+    // и настраиваем здесь спеицичесике правила для преобразования,
+    // а затем именно этот бин используем в инициализации ProducerFactory
+     */
     @Bean
     public ObjectMapper objectMapper() {
         return JacksonUtils.enhancedObjectMapper();
@@ -28,8 +34,10 @@ public class KafkaConfiguration {
     public ProducerFactory<String, MessageDTO> producerFactory(
             KafkaProperties kafkaProperties, ObjectMapper mapper
     ) {
-        var props = kafkaProperties.buildProducerProperties(null);                              //берет уже имеющиеся настройки из application.yml
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);                   //и добавляем
+        //props создается не пустой мапой, а уже наполенныеми свойствами из application.yml файла
+        var props = kafkaProperties.buildProducerProperties(null);
+        //добавляем те свойства, которые точно не будут меняться от запуска к запуску
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
         return new DefaultKafkaProducerFactory<>(
@@ -45,6 +53,10 @@ public class KafkaConfiguration {
         return new KafkaTemplate<>(producerFactory);
     }
 
+    /*
+    // Кафка при первом обращении к несуществующему топику должна создавать его, если его нет
+    // Однако может такого и не случится, поэтому мы должны такое создание сделать в виде бина
+     */
     @Bean
     public NewTopic mainTopic(@Value("${spring.kafka.topic.name}") String sendClientTopic,
                           @Value("${spring.kafka.replication.factor}") Integer replicationFactor,
