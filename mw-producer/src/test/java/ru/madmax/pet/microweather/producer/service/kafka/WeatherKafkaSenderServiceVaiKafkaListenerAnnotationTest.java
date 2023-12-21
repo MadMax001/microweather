@@ -55,7 +55,7 @@ class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
     final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${spring.kafka.topic.name}",
-            groupId = "KafkaListenerAnnotationTestGroup",
+            groupId = "SuccessfulKafkaListenerAnnotationTestGroup",
             containerFactory = "kafkaListenerContainerFactory")
     private void listen(ConsumerRecord<String, MessageDTO> consumerRecord) throws InterruptedException {
         records.put(consumerRecord);

@@ -53,7 +53,7 @@ class FailedWeatherKafkaSenderServiceVaiKafkaListenerAnnotationWithDeliveryTimeo
 
 
     @KafkaListener(topics = "${spring.kafka.topic.name}",
-            groupId = "FailedKafkaListenerAnnotationTestGroup",
+            groupId = "FailedKafkaListenerAnnotationTestGroup1",
             containerFactory = "kafkaListenerContainerFactory")
     private void listen(ConsumerRecord<String, MessageDTO> consumerRecord) throws InterruptedException {
         records.put(consumerRecord);
