@@ -67,7 +67,6 @@ public class ExceptionHandlerController {
     }
 
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<Void>> handleExceptions(
             Exception ex,
