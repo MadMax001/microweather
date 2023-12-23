@@ -30,42 +30,47 @@ public class WeatherFacadeService implements WeatherService {
     public Mono<String> registerRequest(RequestDTO request) {
         CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> {
             final String guid = uuidGeneratorService.randomGenerate();
-            RequestParams params = RequestParams.builder()
-                    .guid(guid)
-                    .url(servicesBuilder.getURLByKey(request.getSource()))
-                    .build();
+            logService.info(String.format("Register request [%s]: %s", guid, request.toString()));
+            RequestParams params = buildRequestParams (guid, request);
             var monoWeather = requestService.sendRequest(request.getPoint(), params);
-            monoWeather.subscribe(
-                    weather -> {
-                        logService.info(String.format("Receive response for guid %s",
-                                guid));
-                        try {
-                            producerService.produceMessage(
-                                    guid,
-                                    createMessage(WEATHER, weather));
-                        } catch (JsonProcessingException e) {
-                            throw new AppProducerException(e);
-                        }
-                    },
-                    error -> {
-                        logService.error(String.format("Error response for guid %s: %s:%s",
-                                guid,
-                                error.getClass().getName(),
-                                error.getMessage()));
-                        try {
-                            producerService.produceMessage(
-                                    guid,
-                                    createMessage(ERROR, error));
-                        } catch (JsonProcessingException e) {
-                            throw new AppProducerException(e);
-                        }
-                    }
-            );
+            monoWeather
+                    .switchIfEmpty(Mono.error(new AppProducerException("Empty response")))
+                    .subscribe(
+                            weather -> {
+                                logService.info(String.format("Receive response for guid %s",
+                                        guid));
+                                produceMessage(guid, WEATHER, weather);
+                            },
+                            error -> {
+                                logService.error(String.format("Error response for guid %s: %s:%s",
+                                        guid,
+                                        error.getClass().getName(),
+                                        error.getMessage()));
+                                produceMessage(guid, ERROR, error);
+                            }
+                    );
             return guid;
         });
         return Mono.fromFuture(cf);
     }
 
+    private RequestParams buildRequestParams (String guid, RequestDTO request) {
+        return RequestParams.builder()
+                .guid(guid)
+                .url(servicesBuilder.getURLByKey(request.getSource()))
+                .build();
+    }
+
+    private void produceMessage(String guid, MessageType type, Object object) {
+        try {
+            producerService.produceMessage(
+                    guid,
+                    createMessage(type, object));
+        } catch (JsonProcessingException e) {
+            throw new AppProducerException(e);
+        }
+
+    }
     private MessageDTO createMessage(MessageType type, Object object) throws JsonProcessingException {
         var message = new MessageDTO();
         message.setType(type);
