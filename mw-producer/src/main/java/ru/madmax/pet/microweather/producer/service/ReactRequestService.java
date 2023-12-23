@@ -35,6 +35,7 @@ public class ReactRequestService implements WeatherRequestService {
 
     @Override
     public Mono<Weather> sendRequest(Point point, RequestParams params) {
+        logService.info(String.format("Send [%s] to %s", params.getGuid(), params.getUrl().toString()));
         var webClient = WebClient.builder()
                 .baseUrl(String.format("%s://%s",
                         params.getUrl().getProtocol(),

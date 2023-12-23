@@ -36,6 +36,7 @@ import ru.madmax.pet.microweather.producer.model.RequestParams;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,7 +75,7 @@ class ReactRequestServiceTest {
     }
 
     @Test
-    void sendRequest_andCheckForRequestDetails_AndCheckForReturningMonoObject()
+    void sendRequest_AndCheckForRequestDetails_AndCheckForReturningMonoObject()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
@@ -141,7 +142,7 @@ class ReactRequestServiceTest {
                 .expectComplete()
                 .verify();
 
-        verify(logService, times(3)).info(any(String.class));
+        verify(logService, times(4)).info(any(String.class));
         for (int i = 0; i < 2; i++) {
             RecordedRequest recordedRequest = remoteMockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
@@ -183,7 +184,7 @@ class ReactRequestServiceTest {
                                 throwable.getMessage().contains("Retries exhausted")
                 ).verify();
 
-        verify(logService, times(3)).info(any(String.class));
+        verify(logService, times(4)).info(any(String.class));
         for (int i = 0; i < 2; i++) {
             RecordedRequest recordedRequest = remoteMockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
@@ -227,14 +228,14 @@ class ReactRequestServiceTest {
                 .build();
 
         loaderService.sendRequest(point, params).block();
-        verify(logService, times(1)).info(logInfoCaptor.capture());
-        String logInfo = logInfoCaptor.getValue();
-        assertThat(logInfo).contains(testHeaderKey, "200 OK", "test-guid");
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        List<String> logInfoList = logInfoCaptor.getAllValues();
+        assertThat(logInfoList.get(1)).contains(testHeaderKey, "200 OK", "test-guid");
 
     }
 
     @Test
-    void sendRequest_OnNotExistingPage_AndCheckForLogOfHeadersAndStatusOfResponse_AndCheckForReturningMonoEmpty()
+    void sendRequest_OnNotExistingPage_andCheckForLogOfHeadersAndStatusOfResponse_andCheckForReturningMonoEmpty()
             throws MalformedURLException {
 
         Dispatcher dispatcher = new Dispatcher() {
@@ -256,21 +257,41 @@ class ReactRequestServiceTest {
                 .build();
 
         var weatherMono = loaderService.sendRequest(point, params);
-/*
-        StepVerifier.create(weatherMono)
-                .expectErrorMatches(
-                        throwable -> throwable.getClass().toString().contains("RetryExhaustedException") &&
-                                throwable.getMessage().contains("Retries exhausted")
-                ).verify();
-*/
 
         StepVerifier.create(weatherMono)
                 .expectComplete()
                 .verify();
 
-        verify(logService, times(1)).info(logInfoCaptor.capture());
-        String logInfo = logInfoCaptor.getValue();
-        assertThat(logInfo).contains("404 NOT_FOUND", "test-guid");
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        List<String> logInfoList = logInfoCaptor.getAllValues();
+        assertThat(logInfoList.get(1)).contains("404 NOT_FOUND", "test-guid");
+    }
+
+    @Test
+    void sendRequest_andCheckForLogOfRequest()
+            throws JsonProcessingException, MalformedURLException {
+        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final ObjectMapper mapper = new ObjectMapper();
+        final String stringResponseContent = mapper.writeValueAsString(weather);
+
+        doNothing().when(logService).info(any(String.class));
+
+        remoteMockServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .setBody(stringResponseContent));
+
+        final Point point = TestPointBuilder.aPoint().build();
+        final URL url = new URL(remoteMockServer.url("/test-path").toString());
+        final RequestParams params = RequestParams
+                .builder()
+                .guid("test-guid")
+                .url(url)
+                .build();
+
+        loaderService.sendRequest(point, params).block();
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        List<String> logInfoList = logInfoCaptor.getAllValues();
+        assertThat(logInfoList.get(0)).contains("test-guid", url.toString());
 
     }
 
