@@ -23,6 +23,7 @@ import reactor.test.StepVerifier;
 import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microweather.producer.configuration.WeatherRemoteServicesListBuilder;
 import ru.madmax.pet.microweather.producer.exception.AppProducerException;
+import ru.madmax.pet.microweather.producer.exception.WrongSourceException;
 import ru.madmax.pet.microweather.producer.model.*;
 
 import java.time.Duration;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -326,4 +328,17 @@ class WeatherFacadeServiceTest {
         assertThat((int)((keyGenerationTime - returnFacadeMethodTime) / 1_000_000_000)).isOne();
     }
 
+    @Test
+    void sendRequest_WithWrongSource_AndThrowsWrongSourceException() {
+        Point point = TestPointBuilder.aPoint().build();
+        RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
+                .withPoint(point)
+                .withSource("error-source")
+                .build();
+        when(uuidGeneratorService.randomGenerate()).thenReturn("guid");
+
+        var mono = weatherFacadeService.registerRequest(requestDTO);
+        assertThatThrownBy(mono::block).isInstanceOf(WrongSourceException.class);
+
+    }
 }

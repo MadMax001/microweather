@@ -4,6 +4,7 @@ package ru.madmax.pet.microweather.producer.configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import ru.madmax.pet.microweather.producer.exception.AppProducerException;
+import ru.madmax.pet.microweather.producer.exception.WrongSourceException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -36,7 +37,7 @@ public class WeatherRemoteServicesListBuilder {
 
     public URL getURLByKey(String key) {
         return Optional.ofNullable(map.get(key))
-                .orElseThrow(() -> new NoSuchElementException(key));
+                .orElseThrow(() -> new WrongSourceException(key));
     }
 
 }
