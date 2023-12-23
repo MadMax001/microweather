@@ -16,7 +16,6 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microweather.common.model.*;
-import ru.madmax.pet.microweather.producer.model.*;
 import ru.madmax.pet.microweather.producer.service.LogService;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 import ru.madmax.pet.microweather.producer.service.handlers.ErrorSendingHandler;
@@ -38,7 +37,7 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class WeatherKafkaSenderServiceVaiKafkaListenerAnnotationTest {
+class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     final WeatherKafkaSenderService weatherSenderService;
     final KafkaTemplate<String, MessageDTO> kafkaTemplate;

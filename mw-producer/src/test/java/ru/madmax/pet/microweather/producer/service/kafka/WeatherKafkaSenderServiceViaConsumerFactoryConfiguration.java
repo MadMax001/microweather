@@ -22,12 +22,6 @@ import java.util.Map;
 class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
     @Value("${spring.kafka.bootstrap-servers}")
     String brokers;
-    @Value("${spring.kafka.replication.factor}")
-    Integer replicationFactor;
-    @Value("${spring.kafka.partition.number}")
-    Integer partitionNumber;
-    @Value("${spring.kafka.topic.name}")
-    String sendClientTopic;
     @Bean
     public ConsumerFactory<String, MessageDTO> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -38,30 +32,6 @@ class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-
-
-/*
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-        props.put(ErrorHandlingDeserializer.VALUE_FUNCTION, FailedWeatherProvider.class);
-
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "ru.madmax.pet.microweather.producer.model.Weather");
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "ru.madmax.pet.microweather.producer.model");
-*/
-
-        //props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        //props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        //props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-       // props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, StringDeserializer.class);
-        //props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, );
-
-
-/*
-        JsonDeserializer<Weather> deserializer = new JsonDeserializer<>(Weather.class, false);
-        deserializer.setRemoveTypeHeaders(false);
-        deserializer.addTrustedPackages("*");
-        deserializer.setUseTypeMapperForKey(true);
-*/
 
         return new DefaultKafkaConsumerFactory<>(
                 props,
@@ -79,11 +49,4 @@ class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
         return factory;
     }
 
-/*    @Bean
-    public NewTopic testTopic() {
-        return TopicBuilder.name(sendClientTopic)
-                .partitions(partitionNumber)
-                .replicas(replicationFactor)
-                .build();
-    }*/
 }
