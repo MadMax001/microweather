@@ -6,9 +6,10 @@ import lombok.Data;
 import ru.madmax.pet.microweather.common.model.Point;
 
 @Data
-public class RequestDTO {                                                                       //todo тесты на валидацию
+public class RequestDTO {
     @NotNull(message = "Source is not set")
     private String source;
     @Valid
+    @NotNull(message = "Point is not set")
     private Point point;
 }
