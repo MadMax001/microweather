@@ -25,12 +25,12 @@ import static org.mockito.Mockito.*;
 @WebFluxTest(controllers = {AppControllerV1.class, ExceptionHandlerController.class})                   //аннотация автоматом конфигурит webTestClient
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class AppControllerV1Test {
-    private final WebTestClient webTestClient;
+    final WebTestClient webTestClient;
     @MockBean
     private WeatherLoaderService loaderService;
 
     @Test
-    void weatherCorrectRequest() throws Exception {
+    void weatherCorrectRequest_AndCheckAnswerAndHeader() throws Exception {
         var objectMapper = new ObjectMapper();
         var weather = TestWeatherBuilder.aWeather().build();
         String weatherStr = objectMapper.writeValueAsString(weather);
@@ -55,7 +55,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_withoutLatitude_AndGet400Status() {
+    void weatherRequest_withoutLatitude_AndGet400Status_WithDetailsHeaders() {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = "{\"lon\":46.001373}";
         webTestClient
@@ -73,7 +73,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_withoutLongitude_AndGet400Status() {
+    void weatherRequest_withoutLongitude_AndGet400Status_WithDetailsHeaders() {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = "{\"lat\":51.534986}";
         webTestClient
@@ -91,7 +91,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_withoutGUIDHeader_AndGet400Status() throws Exception {
+    void weatherRequest_WithoutGUIDHeader_AndGet400Status_WithDetailsHeaders() throws Exception {
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.just(TestWeatherBuilder.aWeather().build()));
         String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
         webTestClient
@@ -109,7 +109,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_AppExceptionInService_AndGet400Status() throws JsonProcessingException {
+    void weatherRequest_AppExceptionInService_AndGet500Status_WithDetailsHeaders() throws JsonProcessingException {
         AppYandexException error = new AppYandexException("test error");
         doThrow(error).when(loaderService).requestWeatherByPoint(any(Point.class));
         String stringContent = new ObjectMapper().writeValueAsString(TestPointBuilder.aPoint().build());
@@ -130,7 +130,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void weatherRequest_andThrowsErrorInMono_andCheckHeaders() throws JsonProcessingException {
+    void weatherRequest_andThrowsErrorInMono_AndGet500Status_andCheckHeaders() throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         Throwable error = new AppYandexException("Error in process");
         when(loaderService.requestWeatherByPoint(any(Point.class))).thenReturn(Mono.error(error));
