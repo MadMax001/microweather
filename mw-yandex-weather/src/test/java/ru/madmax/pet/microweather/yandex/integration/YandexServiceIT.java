@@ -60,7 +60,7 @@ class YandexServiceIT {
     }
 
     @Test
-    void requestWeather_happyPass() throws JsonProcessingException {
+    void requestWeather_happyPass_CheckResponseAndHeaders() throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = objectMapper.writeValueAsString(weather);
@@ -91,7 +91,7 @@ class YandexServiceIT {
     }
 
     @Test
-    void requestWeather_butRemoteServiceNotResponseDuringTimeoutValue_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
+    void requestWeather_ButRemoteServiceNotResponseDuringTimeoutValue_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = objectMapper.writeValueAsString(weather);
