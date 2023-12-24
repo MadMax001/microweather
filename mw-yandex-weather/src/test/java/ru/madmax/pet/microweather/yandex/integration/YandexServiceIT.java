@@ -28,6 +28,8 @@ import ru.madmax.pet.microweather.common.model.Weather;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
+
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
         "app.weather.timeout=1000",
@@ -149,6 +151,36 @@ class YandexServiceIT {
                 .expectComplete()
                 .verify();
 
+    }
+
+    @Test
+    void requestWeather_AndReceiveWrongStructureResponse_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
+        var objectMapper = new ObjectMapper();
+        final String stringContent = "5555555";
+
+        final Point point = TestPointBuilder.aPoint().build();
+        final String stringPoint = objectMapper.writeValueAsString(point);
+
+        setMockResponseFromServer(500, stringContent);
+
+        var receivedResponseEntityContent = webTestClient
+                .post()
+                .uri(SERVICE_LOCAL_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(stringPoint))
+                .header(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError()
+                .expectHeader().valueEquals(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .expectHeader().value(ERROR_HEADER_KEY,
+                        stringContainsInOrder("IllegalModelStructureException", stringContent))
+                .returnResult(Void.class)
+                .getResponseBody();
+
+        StepVerifier.create(receivedResponseEntityContent)
+                .expectComplete()
+                .verify();
     }
 
     private void setMockResponseFromServer(int timeout, String responseContentString) {

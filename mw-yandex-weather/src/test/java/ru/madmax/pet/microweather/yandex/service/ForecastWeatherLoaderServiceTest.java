@@ -34,7 +34,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ActiveProfiles("test")
 class ForecastWeatherLoaderServiceTest {
-    private final HttpClient httpClient;
+    final HttpClient httpClient;
+    ObjectMapper objectMapper = new ObjectMapper();
 
     MockWebServer remoteMockServer;
     WeatherLoaderService loaderService;
@@ -45,7 +46,7 @@ class ForecastWeatherLoaderServiceTest {
         remoteMockServer.start();
         String url = remoteMockServer.url("").toString();
         String token = "test-token";
-        loaderService = new ForecastWeatherLoaderService(httpClient, token, url, "", 100, 1);
+        loaderService = new ForecastWeatherLoaderService(httpClient, objectMapper, token, url, "", 100, 1);
     }
 
     @AfterEach
@@ -55,7 +56,7 @@ class ForecastWeatherLoaderServiceTest {
     }
 
     @Test
-    void checkForRemoteRequest() throws JsonProcessingException, InterruptedException {
+    void requestWeather_AndCheckRequestWithHeader_AndCheckResponse() throws JsonProcessingException, InterruptedException {
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = new ObjectMapper().writeValueAsString(weather);
 
@@ -80,6 +81,26 @@ class ForecastWeatherLoaderServiceTest {
                 point.getLon().toString(),
                 "lat=",
                 "lon=");
+
+    }
+
+    @Test
+    void requestWeather_AndReceiveIllegalModelResponse_ThrowsIllegalModelStructureException() {
+        final String stringContent = "1234!!";
+
+        remoteMockServer.enqueue(new MockResponse()
+                .addHeader("Content-Type", MediaType.APPLICATION_JSON)
+                .setBody(stringContent));
+
+        Point point = TestPointBuilder.aPoint().build();
+
+        Mono<Weather> monoWeather = loaderService.requestWeatherByPoint(point);
+
+        StepVerifier.create(monoWeather)
+                .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
+                        throwable.getMessage().contains("1234!!")
+                )
+                .verify();
 
     }
 
