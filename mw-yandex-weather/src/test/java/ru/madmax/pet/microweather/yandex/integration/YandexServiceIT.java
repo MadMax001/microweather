@@ -93,7 +93,7 @@ class YandexServiceIT {
     }
 
     @Test
-    void requestWeather_ButRemoteServiceNotResponseDuringTimeoutValue_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
+    void requestWeather_ButRemoteServiceNotResponseDuringTimeoutValue_AndCheck500StatusAndErrorHeader() throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = objectMapper.writeValueAsString(weather);
@@ -124,7 +124,7 @@ class YandexServiceIT {
     }
 
     @Test
-    void requestWeather_withWrongParams_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
+    void requestWeather_withWrongParams_AndCheck400StatusAndErrorHeader() throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final String stringContent = objectMapper.writeValueAsString(weather);
@@ -154,7 +154,8 @@ class YandexServiceIT {
     }
 
     @Test
-    void requestWeather_AndReceiveWrongStructureResponse_AndCheckStatusAndErrorHeader() throws JsonProcessingException {
+    void requestWeather_AndReceiveWrongStructureResponse_AndCheck500StatusAndErrorHeader()
+            throws JsonProcessingException {
         var objectMapper = new ObjectMapper();
         final String stringContent = "5555555";
 
