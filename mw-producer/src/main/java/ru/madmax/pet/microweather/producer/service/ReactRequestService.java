@@ -1,11 +1,14 @@
 package ru.madmax.pet.microweather.producer.service;
 
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -14,6 +17,7 @@ import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.producer.model.RequestParams;
 
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,7 +62,17 @@ public class ReactRequestService implements WeatherRequestService {
                     return Mono.empty();
                 })
                 .retryWhen(Retry.backoff(weatherRetryAttempts, Duration.ofMillis(weatherRetryDuration))
-                        .doBeforeRetry(retry -> logService.info(String.format("Retrying, %d", retry.totalRetries()))));
+                        .doBeforeRetry(retry -> logService.info(String.format("Retrying, %d", retry.totalRetries())))
+                        .filter(throwable ->
+                                    throwable instanceof ReadTimeoutException ||
+                                    throwable instanceof WebClientResponseException &&
+                                            (
+                                              throwable.getMessage().startsWith("502") ||
+                                              throwable.getMessage().startsWith("503")
+                                            ) ||
+                                    throwable instanceof WebClientRequestException &&
+                                            throwable.getCause() instanceof TimeoutException));
+
     }
 
     private void logResponseDetails(ClientResponse response, RequestParams params) {

@@ -230,7 +230,52 @@ class ReactRequestServiceTest {
         loaderService.sendRequest(point, params).block();
         verify(logService, times(2)).info(logInfoCaptor.capture());
         List<String> logInfoList = logInfoCaptor.getAllValues();
-        assertThat(logInfoList.get(1)).contains(testHeaderKey, "200 OK", "test-guid");
+        assertThat(logInfoList.get(1)).contains(testHeaderKey, "200 OK", testHeaderValue);
+    }
+
+    @Test
+    void sendRequest_AndReceiveErrorResponseAndErrorHeader_AndCheckForHeaderAndStatusOfResponse() throws MalformedURLException {
+        final String testHeaderKey = "request-test-header";
+        final String testHeaderValue = "test-value";
+        doNothing().when(logService).info(any(String.class));
+
+        Dispatcher dispatcher = new Dispatcher() {
+            @NotNull
+            @Override
+            public MockResponse dispatch(@NotNull RecordedRequest request) {
+                if ("POST".equals(request.getMethod()) &&
+                        request.getPath() != null &&
+                        request.getPath().startsWith("/test-path")) {
+                    return new MockResponse()
+                            .addHeader("Content-Type", MediaType.APPLICATION_JSON)
+                            .addHeader(testHeaderKey, testHeaderValue)
+                            .setBody("")
+                            .setResponseCode(500)
+                            .setBodyDelay(100, TimeUnit.MILLISECONDS);
+                }
+                return new MockResponse().setResponseCode(404);
+            }
+        };
+        remoteMockServer.setDispatcher(dispatcher);
+
+        final Point point = TestPointBuilder.aPoint().build();
+        final URL url = new URL(remoteMockServer.url("/test-path").toString());
+        final RequestParams params = RequestParams
+                .builder()
+                .guid("test-guid")
+                .url(url)
+                .build();
+
+        var weatherMono = loaderService.sendRequest(point, params);
+
+        StepVerifier.create(weatherMono)
+                .expectError()
+                .verify();
+
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        List<String> logInfoList = logInfoCaptor.getAllValues();
+        assertThat(logInfoList.get(1)).contains(testHeaderKey, "500 INTERNAL_SERVER_ERROR", testHeaderValue);
+
 
     }
 
@@ -268,7 +313,7 @@ class ReactRequestServiceTest {
     }
 
     @Test
-    void sendRequest_andCheckForLogOfRequest()
+    void sendRequest_AndCheckForLogOfRequest()
             throws JsonProcessingException, MalformedURLException {
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
