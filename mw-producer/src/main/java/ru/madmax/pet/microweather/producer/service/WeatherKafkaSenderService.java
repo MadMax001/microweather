@@ -19,15 +19,18 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
 
     private final String sendClientTopic;
     private final KafkaTemplate<String , MessageDTO> kafkaTemplate;
+    private final LogService logService;
     private final BiConsumer<String, SendResult<String, MessageDTO>> successSendingHandler;
     private final BiConsumer<String,Throwable> errorSendingHandler;
 
     public WeatherKafkaSenderService(@Value("${spring.kafka.topic.name}") String sendClientTopic,
                                      KafkaTemplate<String, MessageDTO> kafkaTemplate,
+                                     LogService logService,
                                      BiConsumer<String,SendResult<String, MessageDTO>> successSendingHandler,
                                      BiConsumer<String,Throwable> errorSendingHandler) {
         this.sendClientTopic = sendClientTopic;
         this.kafkaTemplate = kafkaTemplate;
+        this.logService = logService;
         this.successSendingHandler = successSendingHandler;
         this.errorSendingHandler = errorSendingHandler;
     }
@@ -35,6 +38,7 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
     @Override
     public void produceMessage(String key, MessageDTO message) {
         try {
+            logService.info(String.format("Send message to broker [%s]: %s", key, message));
             var sendResult = kafkaTemplate.send(sendClientTopic, key, message);
 
             sendResult.whenComplete((result, ex) -> {

@@ -81,8 +81,8 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
         assertThat(records).isEmpty();
 
-        verify(logService, times(1)).info(logInfoCaptor.capture());
-        String logInfoString = logInfoCaptor.getValue();
+        verify(logService, times(2)).info(logInfoCaptor.capture());
+        String logInfoString = logInfoCaptor.getAllValues().get(1);
         assertThat(logInfoString).contains(
                 "Successful sending",
                 key,
@@ -129,14 +129,14 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
         assertThat(records).isEmpty();
 
-        verify(logService, times(2)).info(logInfoCaptor.capture());
+        verify(logService, times(4)).info(logInfoCaptor.capture());
         var logInfoStrings = logInfoCaptor.getAllValues();
-        assertThat(logInfoStrings.get(0)).contains(
+        assertThat(logInfoStrings.get(2)).contains(
                 "Successful sending",
                 key1,
                 messageDTO1.getMessage()
         );
-        assertThat(logInfoStrings.get(1)).contains(
+        assertThat(logInfoStrings.get(3)).contains(
                 "Successful sending",
                 key2,
                 messageDTO2.getMessage()
@@ -148,6 +148,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         var producerServiceWithUnexistingTopic = new WeatherKafkaSenderService(
                 "mock-topic",
                 kafkaTemplate,
+                logService,
                 successSendingHandler,
                 errorSendingHandler);
         final Weather weather = TestWeatherBuilder.aWeather().build();
@@ -163,7 +164,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord).isNull();
         assertThat(records).isEmpty();
 
-        verify(logService, times(1)).info(any(String.class));
+        verify(logService, times(2)).info(any(String.class));
         verify(logService, never()).error(any(Throwable.class));
 
     }
@@ -203,14 +204,14 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
         assertThat(records).isEmpty();
 
-        verify(logService, times(2)).info(logInfoCaptor.capture());
+        verify(logService, times(4)).info(logInfoCaptor.capture());
         var logInfoStrings = logInfoCaptor.getAllValues();
-        assertThat(logInfoStrings.get(0)).contains(
+        assertThat(logInfoStrings.get(2)).contains(
                 "Successful sending",
                 key,
                 messageDTO1.getMessage()
         );
-        assertThat(logInfoStrings.get(1)).contains(
+        assertThat(logInfoStrings.get(3)).contains(
                 "Successful sending",
                 key,
                 messageDTO2.getMessage()
