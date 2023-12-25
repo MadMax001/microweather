@@ -37,7 +37,7 @@ public class WeatherFacadeService implements WeatherService {
                     .switchIfEmpty(Mono.error(new AppProducerException("Empty response")))
                     .subscribe(
                             weather -> {
-                                logService.info(String.format("Receive response for guid %s",
+                                logService.info(String.format("Get response for guid %s",
                                         guid));
                                 produceMessage(guid, WEATHER, weather);
                             },
