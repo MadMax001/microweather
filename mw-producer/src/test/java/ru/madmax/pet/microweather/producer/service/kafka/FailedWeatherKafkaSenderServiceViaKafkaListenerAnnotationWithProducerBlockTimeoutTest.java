@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -20,6 +22,7 @@ import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -42,6 +45,13 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
 
     final ObjectMapper objectMapper;
 
+    @Captor
+    ArgumentCaptor<String> errorMessageCaptor;
+
+    @Captor
+    ArgumentCaptor<String> keyCaptor;
+
+
     @KafkaListener(topics = "${spring.kafka.topic.name}",
             groupId = "FailedKafkaListenerAnnotationTestGroup2",
             containerFactory = "kafkaListenerContainerFactory")
@@ -62,7 +72,7 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
                 .isInstanceOf(AppProducerException.class)
                 .message().contains("TimeoutException");
 
-        verify(logService, never()).info(any(String.class));
-        verify(logService, never()).error(any(Throwable.class));
+        verify(logService, times(1)).info(anyString(), anyString());
+        verify(logService, never()).error(anyString(), anyString());
     }
 }

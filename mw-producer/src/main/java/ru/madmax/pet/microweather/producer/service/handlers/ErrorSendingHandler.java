@@ -15,11 +15,12 @@ public class ErrorSendingHandler implements BiConsumer<String, Throwable> {
 
     @Override
     public void accept(String key, Throwable error) {
-        logService.error(String.format("Error on sending [%s]: %s: %s%nCause: %s: %s",
+        logService.error(
                 key,
-                error.getClass().getName(),
-                error.getMessage(),
-                (nonNull(error.getCause())? error.getCause().getClass().getName(): ""),
-                (nonNull(error.getCause())? error.getMessage(): "")
+                String.format("Error on sending: %s: %s%nCause: %s: %s",
+                    error.getClass().getName(),
+                    error.getMessage(),
+                    (nonNull(error.getCause())? error.getCause().getClass().getName(): ""),
+                    (nonNull(error.getCause())? error.getMessage(): "")
         ));    }
 }

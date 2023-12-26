@@ -50,6 +50,8 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithDeliveryTimeo
     @Captor
     ArgumentCaptor<String> errorMessageCaptor;
 
+    @Captor
+    ArgumentCaptor<String> keyCaptor;
 
     @KafkaListener(topics = "${spring.kafka.topic.name}",
             groupId = "FailedKafkaListenerAnnotationTestGroup1",
@@ -60,7 +62,7 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithDeliveryTimeo
 
     @Test
     void sendWeatherMessageToProducer_AndProducerCantSendByTimeout_AndCheckOnFailedSection() throws InterruptedException, JsonProcessingException {
-        doNothing().when(logService).error(any(String.class));
+        doNothing().when(logService).error(anyString(),anyString());
 
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
@@ -71,12 +73,15 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithDeliveryTimeo
         weatherSenderService.produceMessage(key, messageDTO);
         Thread.sleep(500);
 
-        verify(logService, never()).info(any(String.class));
-        verify(logService, times(1)).error(errorMessageCaptor.capture());
+        verify(logService, times(1)).info(anyString(), anyString());
+        verify(logService, times(1)).error(keyCaptor.capture(), errorMessageCaptor.capture());
         String errorMessage = errorMessageCaptor.getValue();
+        String keyValue = keyCaptor.getValue();
+
         assertThat(errorMessage).contains(
-                key,
                 "KafkaProducerException",
                 "TimeoutException");
+
+        assertThat(keyValue).isEqualTo(key);
     }
 }

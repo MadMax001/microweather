@@ -72,8 +72,8 @@ class WeatherKafkaSenderServiceViaConsumerFactoryTest {
                 assertThat(singleRecord.value().getType()).isEqualTo(MessageType.WEATHER);
             });
 
-            verify(logService, times(1)).info(any(String.class));
-            verify(logService, never()).error(any(Throwable.class));
+            verify(logService, times(2)).info(anyString(), anyString());
+            verify(logService, never()).error(anyString(), anyString());
             consumer.commitSync();
             consumer.unsubscribe();
         }

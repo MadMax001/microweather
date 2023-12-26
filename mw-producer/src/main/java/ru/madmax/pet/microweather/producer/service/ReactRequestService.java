@@ -39,7 +39,9 @@ public class ReactRequestService implements WeatherRequestService {
 
     @Override
     public Mono<Weather> sendRequest(Point point, RequestParams params) {
-        logService.info(String.format("Send [%s] to %s", params.getGuid(), params.getUrl().toString()));
+        logService.info(
+                params.getGuid(),
+                String.format("Send to %s", params.getUrl().toString()));
         var webClient = WebClient.builder()
                 .baseUrl(String.format("%s://%s",
                         params.getUrl().getProtocol(),
@@ -62,7 +64,9 @@ public class ReactRequestService implements WeatherRequestService {
                     return Mono.empty();
                 })
                 .retryWhen(Retry.backoff(weatherRetryAttempts, Duration.ofMillis(weatherRetryDuration))
-                        .doBeforeRetry(retry -> logService.info(String.format("Retrying, %d", retry.totalRetries())))
+                        .doBeforeRetry(retry -> logService.info(
+                                params.getGuid(),
+                                String.format("Retrying, %d", retry.totalRetries())))
                         .filter(throwable -> {
                                 logErrorDetails(params.getGuid(), throwable);
                                 return checkForRetryByError(throwable);
@@ -79,15 +83,20 @@ public class ReactRequestService implements WeatherRequestService {
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining(", "));
         var statusString = response.statusCode().toString();
-        logService.info(String.format("Response [%s]: status: %s, specific headers {%s}",
+        logService.info(
                 params.getGuid(),
-                statusString,
-                headersListString));
+                String.format("Response status: %s, specific headers {%s}",
+                    statusString,
+                    headersListString)
+        );
     }
 
     private void logErrorDetails(String guid, Throwable throwable) {
-        logService.info(String.format("Error in response details [%s]: %s: %s",
-                guid, throwable.getClass().getName(), throwable.getMessage()));
+        logService.info(
+                guid,
+                String.format("Error in response details: %s: %s",
+                throwable.getClass().getName(), throwable.getMessage())
+        );
     }
 
     private boolean checkForRetryByError(Throwable throwable) {

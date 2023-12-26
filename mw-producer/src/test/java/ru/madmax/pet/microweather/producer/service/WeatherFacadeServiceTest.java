@@ -70,6 +70,9 @@ class WeatherFacadeServiceTest {
 
     @Captor
     ArgumentCaptor<String> errorCaptor;
+
+    @Captor
+    ArgumentCaptor<String> keyCaptor;
     @Captor
     ArgumentCaptor<RequestParams> requestParamsCaptor;
 
@@ -84,7 +87,7 @@ class WeatherFacadeServiceTest {
         Weather weather = TestWeatherBuilder.aWeather().build();
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(weather));
         doNothing().when(producerService).produceMessage(any(), any());
-        doNothing().when(logService).info(any());
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -111,7 +114,7 @@ class WeatherFacadeServiceTest {
                 .thenReturn(Mono.just(weather));
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
-        doNothing().when(logService).info(any(String.class));
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -134,14 +137,14 @@ class WeatherFacadeServiceTest {
         assertThat(messageDTOForVerify.getType()).isEqualTo(MessageType.WEATHER);
         assertThat(messageDTOForVerify.getMessage()).isEqualTo(messageDTO.getMessage());
 
-        verify(logService, times(2)).info(infoCaptor.capture());
+        verify(logService, times(2)).info(keyCaptor.capture(), infoCaptor.capture());
         List<String> infoStringList = infoCaptor.getAllValues();
+        List<String> keyValues = keyCaptor.getAllValues();
         assertThat(infoStringList.get(0)).contains(
-                guid,
                 requestDTO.getSource(),
                 requestDTO.getPoint().getLat().toString(),
                 requestDTO.getPoint().getLon().toString());
-        assertThat(infoStringList.get(1)).contains(guid);
+        assertThat(keyValues).allMatch(key -> key.equals(guid));
     }
 
     @Test
@@ -154,7 +157,7 @@ class WeatherFacadeServiceTest {
                 .thenReturn(Mono.error(error));
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
-        doNothing().when(logService).info(any(String.class));
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -170,13 +173,14 @@ class WeatherFacadeServiceTest {
         assertThat(messageDTOForVerify.getType()).isEqualTo(MessageType.ERROR);
         assertThat(messageDTOForVerify.getMessage()).contains("Test-error");
 
-        verify(logService, times(1)).error(errorCaptor.capture());
+        verify(logService, times(1)).error(keyCaptor.capture(), errorCaptor.capture());
         String errorString = errorCaptor.getValue();
+        String keyValue = keyCaptor.getValue();
         assertThat(errorString).contains(
-                guid,
                 "Error response",
                 "Test-error",
                 "RuntimeException");
+        assertThat(keyValue).isEqualTo(guid);
     }
 
     @Test
@@ -188,7 +192,7 @@ class WeatherFacadeServiceTest {
                 .thenReturn(Mono.empty());
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
-        doNothing().when(logService).info(any(String.class));
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -204,13 +208,14 @@ class WeatherFacadeServiceTest {
         assertThat(messageDTOForVerify.getType()).isEqualTo(MessageType.ERROR);
         assertThat(messageDTOForVerify.getMessage()).contains("Empty response");
 
-        verify(logService, times(1)).error(errorCaptor.capture());
+        verify(logService, times(1)).error(keyCaptor.capture(), errorCaptor.capture());
         String errorString = errorCaptor.getValue();
+        String keyValue = keyCaptor.getValue();
         assertThat(errorString).contains(
-                guid,
                 "Error response",
                 "Empty response",
                 "AppProducerException");
+        assertThat(keyValue).isEqualTo(guid);
     }
 
     @Test
@@ -222,7 +227,7 @@ class WeatherFacadeServiceTest {
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(weather));
         RuntimeException appError = new AppProducerException("Test-error");
         doThrow(appError).when(producerService).produceMessage(any(), any());
-        doNothing().when(logService).info(any());
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -245,7 +250,7 @@ class WeatherFacadeServiceTest {
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(weather));
         RuntimeException appError = new AppProducerException("Test-error");
         doThrow(appError).when(producerService).produceMessage(any(), any());
-        doNothing().when(logService).info(any());
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -263,13 +268,14 @@ class WeatherFacadeServiceTest {
         assertThat(messageDTOListForVerify.get(1).getType()).isEqualTo(MessageType.ERROR);
         assertThat(messageDTOListForVerify.get(1).getMessage()).contains("Test-error");
 
-        verify(logService, times(1)).error(errorCaptor.capture());
+        verify(logService, times(1)).error(keyCaptor.capture(), errorCaptor.capture());
         String errorString = errorCaptor.getValue();
+        String keyValue = keyCaptor.getValue();
         assertThat(errorString).contains(
-                guid,
                 "Error response",
                 "Test-error",
                 "AppProducerException");
+        assertThat(keyValue).isEqualTo(guid);
     }
 
     @Test
@@ -282,7 +288,7 @@ class WeatherFacadeServiceTest {
         when(requestService.sendRequest(any(Point.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(weather).delayElement(Duration.ofSeconds(1)));
 
-        doNothing().when(logService).info(any(String.class));
+        doNothing().when(logService).info(anyString(), anyString());
         final AtomicLong facadeMethodCompleteTime = new AtomicLong(0);
         doAnswer((Answer<Void>) invocationOnMock -> {
             facadeMethodCompleteTime.set(System.nanoTime());
@@ -311,7 +317,7 @@ class WeatherFacadeServiceTest {
         when(requestService.sendRequest(any(Point.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(weather));
 
-        doNothing().when(logService).info(any(String.class));
+        doNothing().when(logService).info(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()

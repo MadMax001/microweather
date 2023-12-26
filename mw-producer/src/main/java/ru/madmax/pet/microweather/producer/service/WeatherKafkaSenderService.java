@@ -38,7 +38,7 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
     @Override
     public void produceMessage(String key, MessageDTO message) {
         try {
-            logService.info(String.format("Send [%s] to broker", key));
+            logService.info(key, "Send to broker");
             var sendResult = kafkaTemplate.send(sendClientTopic, key, message);
 
             sendResult.whenComplete((result, ex) -> {

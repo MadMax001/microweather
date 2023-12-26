@@ -30,22 +30,24 @@ public class WeatherFacadeService implements WeatherService {
     public Mono<String> registerRequest(RequestDTO request) {
         CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> {
             final String guid = uuidGeneratorService.randomGenerate();
-            logService.info(String.format("Register request [%s]: %s", guid, request.toString()));
+            logService.info(
+                    guid,
+                    String.format("Register request: %s", request.toString()));
             RequestParams params = buildRequestParams (guid, request);
             var monoWeather = requestService.sendRequest(request.getPoint(), params);
             monoWeather
                     .switchIfEmpty(Mono.error(new AppProducerException("Empty response")))
                     .subscribe(
                             weather -> {
-                                logService.info(String.format("Get response for guid %s",
-                                        guid));
+                                logService.info(guid, "Get response");
                                 produceMessage(guid, WEATHER, weather);
                             },
                             error -> {
-                                logService.error(String.format("Error response for guid %s: %s:%s",
+                                logService.error(
                                         guid,
-                                        error.getClass().getName(),
-                                        error.getMessage()));
+                                        String.format("Error response: %s:%s",
+                                            error.getClass().getName(),
+                                            error.getMessage()));
                                 produceMessage(guid, ERROR, error);
                             }
                     );

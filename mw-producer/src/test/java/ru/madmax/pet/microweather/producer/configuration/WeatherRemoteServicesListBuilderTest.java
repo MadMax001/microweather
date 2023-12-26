@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.madmax.pet.microweather.producer.exception.WrongSourceException;
 
 import java.util.NoSuchElementException;
 
@@ -41,6 +42,6 @@ class WeatherRemoteServicesListBuilderTest {
 
     @Test
     void checkForNonexistingServiceInMap() {
-        assertThrows(NoSuchElementException.class, () -> servicesBuilder.getURLByKey("123"));
+        assertThrows(WrongSourceException.class, () -> servicesBuilder.getURLByKey("123"));
     }
 }
