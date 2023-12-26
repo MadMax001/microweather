@@ -15,7 +15,7 @@ public class SuccessSendingHandler implements BiConsumer<String, SendResult<Stri
 
     @Override
     public void accept(String key, SendResult<String, MessageDTO> result) {
-        logService.info(String.format("Successful sending[%s]: %s%nMetadata: partition: %s, offset: %s",
+        logService.info(String.format("Successful sending [%s]: %s%nMetadata: partition: %s, offset: %s",
                 key,
                 result.getProducerRecord().value(),
                 result.getRecordMetadata().partition(),
