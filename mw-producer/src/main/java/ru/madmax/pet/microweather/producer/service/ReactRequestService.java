@@ -55,7 +55,7 @@ public class ReactRequestService implements WeatherRequestService {
                 .body(BodyInserters.fromValue(point))
                 .exchangeToMono(response -> {
                     logResponseDetails(response, params);
-                    if (response.statusCode().is5xxServerError())
+                    if (response.statusCode().is5xxServerError() || response.statusCode().is4xxClientError())
                         return response.createException().flatMap(Mono::error);
                     if (response.statusCode().is2xxSuccessful())
                         return response.bodyToMono(Weather.class);
@@ -63,16 +63,10 @@ public class ReactRequestService implements WeatherRequestService {
                 })
                 .retryWhen(Retry.backoff(weatherRetryAttempts, Duration.ofMillis(weatherRetryDuration))
                         .doBeforeRetry(retry -> logService.info(String.format("Retrying, %d", retry.totalRetries())))
-                        .filter(throwable ->
-                                    throwable instanceof ReadTimeoutException ||
-                                    throwable instanceof WebClientResponseException &&
-                                            (
-                                              throwable.getMessage().startsWith("502") ||
-                                              throwable.getMessage().startsWith("503")
-                                            ) ||
-                                    throwable instanceof WebClientRequestException &&
-                                            throwable.getCause() instanceof TimeoutException));
-
+                        .filter(throwable -> {
+                                logErrorDetails(params.getGuid(), throwable);
+                                return checkForRetryByError(throwable);
+                        }));
     }
 
     private void logResponseDetails(ClientResponse response, RequestParams params) {
@@ -90,4 +84,21 @@ public class ReactRequestService implements WeatherRequestService {
                 statusString,
                 headersListString));
     }
+
+    private void logErrorDetails(String guid, Throwable throwable) {
+        logService.info(String.format("Error in response details [%s]: %s: %s",
+                guid, throwable.getClass().getName(), throwable.getMessage()));
+    }
+
+    private boolean checkForRetryByError(Throwable throwable) {
+        return throwable instanceof ReadTimeoutException ||
+                throwable instanceof WebClientResponseException &&
+                        (
+                                throwable.getMessage().startsWith("502") ||
+                                        throwable.getMessage().startsWith("503")
+                        ) ||
+                throwable instanceof WebClientRequestException &&
+                        throwable.getCause() instanceof TimeoutException;
+    }
+
 }
