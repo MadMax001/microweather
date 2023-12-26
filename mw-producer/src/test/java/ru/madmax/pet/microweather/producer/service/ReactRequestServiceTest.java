@@ -60,6 +60,9 @@ class ReactRequestServiceTest {
     ArgumentCaptor<String> logInfoCaptor;
 
     @Captor
+    ArgumentCaptor<String> errorInfoCaptor;
+
+    @Captor
     ArgumentCaptor<String> keyCaptor;
 
     @BeforeEach
@@ -84,6 +87,7 @@ class ReactRequestServiceTest {
         final String stringResponseContent = mapper.writeValueAsString(weather);
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -119,6 +123,8 @@ class ReactRequestServiceTest {
         assertThat(logLines.get(1)).contains("Response", "status", "200 OK");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
 
+        verify(logService, never()).error(anyString(), anyString());
+
     }
 
     @Test
@@ -129,6 +135,7 @@ class ReactRequestServiceTest {
         final String stringResponseContent = mapper.writeValueAsString(weather);
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -160,16 +167,23 @@ class ReactRequestServiceTest {
             assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
         }
 
-        verify(logService, times(5)).info(keyCaptor.capture(), logInfoCaptor.capture());
+        verify(logService, times(4)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
         assertThat(logLines.get(1)).contains("Response", "status", "503 SERVICE_UNAVAILABLE");
-        assertThat(logLines.get(2)).contains("Error in response details", "503 Service Unavailable");
-        assertThat(logLines.get(3)).contains("Retrying, 0");
-        assertThat(logLines.get(4)).contains("Response", "status", "200 OK");
+        assertThat(logLines.get(2)).contains("Retrying, 0");
+        assertThat(logLines.get(3)).contains("Response", "status", "200 OK");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
+        verify(logService, times(1)).error(keyCaptor.capture(), errorInfoCaptor.capture());
+        List<String> errorLines = errorInfoCaptor.getAllValues();
+        List<String> keyErrorValues = keyCaptor.getAllValues();
+
+        assertThat(errorLines.get(0)).contains("Error in response details", "503 Service Unavailable");
+        assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
     }
 
     @Test
@@ -180,6 +194,7 @@ class ReactRequestServiceTest {
         final String stringResponseContent = mapper.writeValueAsString(weather);
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -212,17 +227,24 @@ class ReactRequestServiceTest {
             assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
         }
 
-        verify(logService, times(6)).info(keyCaptor.capture(), logInfoCaptor.capture());
+        verify(logService, times(4)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
         assertThat(logLines.get(1)).contains("Response", "status", "503 SERVICE_UNAVAILABLE");
-        assertThat(logLines.get(2)).contains("Error in response details", "503 Service Unavailable");
-        assertThat(logLines.get(3)).contains("Retrying, 0");
-        assertThat(logLines.get(4)).contains("Response", "status", "503 SERVICE_UNAVAILABLE");
-        assertThat(logLines.get(5)).contains("Error in response details", "503 Service Unavailable");
+        assertThat(logLines.get(2)).contains("Retrying, 0");
+        assertThat(logLines.get(3)).contains("Response", "status", "503 SERVICE_UNAVAILABLE");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
+        verify(logService, times(2)).error(keyCaptor.capture(), errorInfoCaptor.capture());
+        List<String> errorLines = errorInfoCaptor.getAllValues();
+        List<String> keyErrorValues = keyCaptor.getAllValues();
+
+        assertThat(errorLines.get(0)).contains("Error in response details", "503 Service Unavailable");
+        assertThat(errorLines.get(1)).contains("Error in response details", "503 Service Unavailable");
+        assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
     }
 
     @Test
@@ -231,6 +253,7 @@ class ReactRequestServiceTest {
         final String testHeaderKey = "request-test-header";
         final String testHeaderValue = "test-value";
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Dispatcher dispatcher = new Dispatcher() {
             @NotNull
@@ -265,14 +288,21 @@ class ReactRequestServiceTest {
                 .expectError()
                 .verify();
 
-        verify(logService, times(3)).info(keyCaptor.capture(), logInfoCaptor.capture());
+        verify(logService, times(2)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
         assertThat(logLines.get(1)).contains("Response", "status", "500 INTERNAL_SERVER_ERROR");
-        assertThat(logLines.get(2)).contains("Error in response details", "500 Internal Server Error");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
+        verify(logService, times(1)).error(keyCaptor.capture(), errorInfoCaptor.capture());
+        List<String> errorLines = errorInfoCaptor.getAllValues();
+        List<String> keyErrorValues = keyCaptor.getAllValues();
+
+        assertThat(errorLines.get(0)).contains("Error in response details", "500 Internal Server Error");
+        assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
     }
 
     @Test
@@ -303,20 +333,29 @@ class ReactRequestServiceTest {
                 .expectError()
                 .verify();
 
-        verify(logService, times(3)).info(keyCaptor.capture(), logInfoCaptor.capture());
+        verify(logService, times(2)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
         assertThat(logLines.get(1)).contains("Response", "status", "404 NOT_FOUND");
-        assertThat(logLines.get(2)).contains("Error in response details", "404 Not Found");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
+        verify(logService, times(1)).error(keyCaptor.capture(), errorInfoCaptor.capture());
+        List<String> errorLines = errorInfoCaptor.getAllValues();
+        List<String> keyErrorValues = keyCaptor.getAllValues();
+
+        assertThat(errorLines.get(0)).contains("Error in response details", "404 Not Found");
+        assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
     }
 
     @Test
     void sendRequest_AndReceiveResponseWithDelayLessThanTimeout_ReturnOK_AndCheckForReturningMonoObject_AndCheckLogs()
             throws MalformedURLException, JsonProcessingException {
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
+
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
         final String stringResponseContent = mapper.writeValueAsString(weather);
@@ -369,6 +408,8 @@ class ReactRequestServiceTest {
     void sendRequest_AndReceiveResponseWithDelayMoreThanTimeout_ReturnError_AndCheckForReturningMonoObject_AndCheckLogs()
             throws MalformedURLException, JsonProcessingException {
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
+
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final ObjectMapper mapper = new ObjectMapper();
         final String stringResponseContent = mapper.writeValueAsString(weather);
@@ -405,16 +446,23 @@ class ReactRequestServiceTest {
                                 throwable.getMessage().contains("Retries exhausted")
                 ).verify();
 
-        verify(logService, times(6)).info(keyCaptor.capture(), logInfoCaptor.capture());
+        verify(logService, times(4)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
         assertThat(logLines.get(1)).contains("Response", "status", "200 OK");          //todo Timeout!!!
-        assertThat(logLines.get(2)).contains("Error in response details", "io.netty.handler.timeout.ReadTimeoutException");
-        assertThat(logLines.get(3)).contains("Retrying, 0");
-        assertThat(logLines.get(1)).contains("Response", "status", "200 OK");          //todo Timeout!!!
-        assertThat(logLines.get(5)).contains("Error in response details", "io.netty.handler.timeout.ReadTimeoutException");
+        assertThat(logLines.get(2)).contains("Retrying, 0");
+        assertThat(logLines.get(3)).contains("Response", "status", "200 OK");          //todo Timeout!!!
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
+        verify(logService, times(2)).error(keyCaptor.capture(), errorInfoCaptor.capture());
+        List<String> errorLines = errorInfoCaptor.getAllValues();
+        List<String> keyErrorValues = keyCaptor.getAllValues();
+
+        assertThat(errorLines.get(0)).contains("Error in response details", "io.netty.handler.timeout.ReadTimeoutException");
+        assertThat(errorLines.get(1)).contains("Error in response details", "io.netty.handler.timeout.ReadTimeoutException");
+        assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
+
     }
 }

@@ -92,7 +92,7 @@ public class ReactRequestService implements WeatherRequestService {
     }
 
     private void logErrorDetails(String guid, Throwable throwable) {
-        logService.info(
+        logService.error(
                 guid,
                 String.format("Error in response details: %s: %s",
                 throwable.getClass().getName(), throwable.getMessage())

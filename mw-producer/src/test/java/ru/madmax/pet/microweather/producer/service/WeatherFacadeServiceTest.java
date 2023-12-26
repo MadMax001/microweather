@@ -88,6 +88,7 @@ class WeatherFacadeServiceTest {
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(weather));
         doNothing().when(producerService).produceMessage(any(), any());
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -115,6 +116,7 @@ class WeatherFacadeServiceTest {
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -144,7 +146,9 @@ class WeatherFacadeServiceTest {
                 requestDTO.getSource(),
                 requestDTO.getPoint().getLat().toString(),
                 requestDTO.getPoint().getLon().toString());
-        assertThat(keyValues).allMatch(key -> key.equals(guid));
+        assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals(guid));
+
+        verify(logService, never()).error(anyString(), anyString());
     }
 
     @Test
@@ -158,6 +162,7 @@ class WeatherFacadeServiceTest {
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -181,6 +186,8 @@ class WeatherFacadeServiceTest {
                 "Test-error",
                 "RuntimeException");
         assertThat(keyValue).isEqualTo(guid);
+
+        verify(logService, times(1)).info(anyString(), anyString());
     }
 
     @Test
@@ -193,6 +200,7 @@ class WeatherFacadeServiceTest {
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -216,6 +224,8 @@ class WeatherFacadeServiceTest {
                 "Empty response",
                 "AppProducerException");
         assertThat(keyValue).isEqualTo(guid);
+
+        verify(logService, times(1)).info(anyString(), anyString());
     }
 
     @Test
@@ -228,6 +238,7 @@ class WeatherFacadeServiceTest {
         RuntimeException appError = new AppProducerException("Test-error");
         doThrow(appError).when(producerService).produceMessage(any(), any());
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -251,6 +262,7 @@ class WeatherFacadeServiceTest {
         RuntimeException appError = new AppProducerException("Test-error");
         doThrow(appError).when(producerService).produceMessage(any(), any());
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
@@ -276,6 +288,8 @@ class WeatherFacadeServiceTest {
                 "Test-error",
                 "AppProducerException");
         assertThat(keyValue).isEqualTo(guid);
+
+        verify(logService, times(2)).info(anyString(), anyString());
     }
 
     @Test
@@ -289,6 +303,8 @@ class WeatherFacadeServiceTest {
                 .thenReturn(Mono.just(weather).delayElement(Duration.ofSeconds(1)));
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
+
         final AtomicLong facadeMethodCompleteTime = new AtomicLong(0);
         doAnswer((Answer<Void>) invocationOnMock -> {
             facadeMethodCompleteTime.set(System.nanoTime());
@@ -318,6 +334,7 @@ class WeatherFacadeServiceTest {
                 .thenReturn(Mono.just(weather));
 
         doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
         Point point = TestPointBuilder.aPoint().build();
         RequestDTO requestDTO = TestRequestDTOBuilder.aRequestDTO()
