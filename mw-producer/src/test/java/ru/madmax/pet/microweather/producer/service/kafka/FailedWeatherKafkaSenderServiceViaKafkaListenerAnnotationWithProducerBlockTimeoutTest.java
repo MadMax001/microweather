@@ -22,9 +22,7 @@ import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
@@ -44,13 +42,6 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
 
 
     final ObjectMapper objectMapper;
-
-    @Captor
-    ArgumentCaptor<String> errorMessageCaptor;
-
-    @Captor
-    ArgumentCaptor<String> keyCaptor;
-
 
     @KafkaListener(topics = "${spring.kafka.topic.name}",
             groupId = "FailedKafkaListenerAnnotationTestGroup2",
