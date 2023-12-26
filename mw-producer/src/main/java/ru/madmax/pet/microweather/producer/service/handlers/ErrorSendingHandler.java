@@ -15,7 +15,7 @@ public class ErrorSendingHandler implements BiConsumer<String, Throwable> {
 
     @Override
     public void accept(String key, Throwable error) {
-        logService.error(String.format("Error on sending[%s]: %s: %s%nCause: %s: %s",
+        logService.error(String.format("Error on sending [%s]: %s: %s%nCause: %s: %s",
                 key,
                 error.getClass().getName(),
                 error.getMessage(),
