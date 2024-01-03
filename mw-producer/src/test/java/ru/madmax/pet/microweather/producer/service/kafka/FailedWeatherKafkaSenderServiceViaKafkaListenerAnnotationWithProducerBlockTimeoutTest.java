@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -13,14 +15,14 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microweather.common.model.*;
-import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 import ru.madmax.pet.microweather.producer.service.LogService;
 import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
@@ -38,6 +40,8 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
     @SpyBean
     LogService logService;
 
+    @Captor
+    ArgumentCaptor<String> infoCaptor;
 
     final ObjectMapper objectMapper;
 
@@ -49,7 +53,8 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
     }
 
     @Test
-    void sendWeatherMessageToProducer_AndProducerBlockVeryLong_AndThrowAppProducerException() throws JsonProcessingException {
+    void sendWeatherMessageToProducer_AndProducerBlockVeryLong_AndThrowAppProducerException()
+            throws JsonProcessingException, InterruptedException {
         final Weather weather = TestWeatherBuilder.aWeather().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.WEATHER)
@@ -57,11 +62,16 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
                 .build();
 
         final String key = "kafka-annotation-3";
-        assertThatThrownBy(() -> weatherSenderService.produceMessage(key, messageDTO))
-                .isInstanceOf(AppProducerException.class)
-                .message().contains("TimeoutException");
+        weatherSenderService.produceMessage(key, messageDTO);
+        records.poll(10, TimeUnit.SECONDS);
 
-        verify(logService, times(1)).info(anyString(), anyString());
-        verify(logService, never()).error(anyString(), anyString());
+        verify(logService, times(1)).info(anyString(), infoCaptor.capture());
+        verify(logService, times(1)).error(anyString(), infoCaptor.capture());
+
+        assertThat(infoCaptor.getAllValues().get(1)).contains(
+                "org.springframework.kafka.KafkaException",
+                "org.apache.kafka.common.errors.TimeoutException"
+        );
+        infoCaptor.getAllValues().forEach(System.out::println);
     }
 }

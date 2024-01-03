@@ -8,7 +8,6 @@ import reactor.core.publisher.Mono;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.MessageType;
 import ru.madmax.pet.microweather.producer.configuration.WeatherRemoteServicesListBuilder;
-import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 import ru.madmax.pet.microweather.producer.model.*;
 
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +35,6 @@ public class WeatherFacadeService implements WeatherService {
             RequestParams params = buildRequestParams (guid, request);
             var monoWeather = requestService.sendRequest(request.getPoint(), params);
             monoWeather
-                    .switchIfEmpty(Mono.error(new AppProducerException("Empty response")))
                     .subscribe(
                             weather -> {
                                 logService.info(guid, "Get response");
@@ -64,19 +62,28 @@ public class WeatherFacadeService implements WeatherService {
     }
 
     private void produceMessage(String guid, MessageType type, Object object) {
-        try {
-            producerService.produceMessage(
-                    guid,
-                    createMessage(type, object));
-        } catch (JsonProcessingException e) {
-            throw new AppProducerException(e);
-        }
-
+        producerService.produceMessage(
+                guid,
+                createMessage(type, object));
     }
-    private MessageDTO createMessage(MessageType type, Object object) throws JsonProcessingException {
+
+    private MessageDTO createMessage(MessageType type, Object object) {
         var message = new MessageDTO();
         message.setType(type);
-        message.setMessage(objectMapper.writeValueAsString(object));
+        if (type == WEATHER) {
+            try {
+                message.setMessage(objectMapper.writeValueAsString(object));
+            } catch (JsonProcessingException e) {
+                logService.error(object.toString(), e);
+                message.setType(ERROR);
+                message.setMessage(String.format("%s: %s (%s)", e.getClass(), e.getMessage(), object));
+            }
+        }
+        if (type == ERROR) {
+            var error = (Throwable)object;
+            message.setMessage(String.format("%s: %s", error.getClass(), error.getMessage()));
+        }
+
         return message;
     }
 }

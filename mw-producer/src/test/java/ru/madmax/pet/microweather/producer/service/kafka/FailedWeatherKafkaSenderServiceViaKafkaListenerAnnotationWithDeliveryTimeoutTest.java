@@ -20,6 +20,7 @@ import ru.madmax.pet.microweather.producer.service.WeatherKafkaSenderService;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -70,7 +71,7 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithDeliveryTimeo
                 .build();
         final String key = "kafka-annotation-4";
         weatherSenderService.produceMessage(key, messageDTO);
-        Thread.sleep(500);
+        records.poll(10, TimeUnit.SECONDS);
 
         verify(logService, times(1)).info(anyString(), anyString());
         verify(logService, times(1)).error(keyCaptor.capture(), errorMessageCaptor.capture());

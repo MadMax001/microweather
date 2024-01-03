@@ -250,7 +250,7 @@ class ReactRequestServiceTest {
     @Test
     void sendRequest_Return500Error_AndCheckErrorResponseAndErrorHeader_AndCheckForHeaderAndStatusOfResponse_AndCheckLogs()
             throws MalformedURLException {
-        final String testHeaderKey = "request-test-header";
+        final String testHeaderKey = "request-error";
         final String testHeaderValue = "test-value";
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
@@ -285,8 +285,10 @@ class ReactRequestServiceTest {
         var weatherMono = loaderService.sendRequest(point, params);
 
         StepVerifier.create(weatherMono)
-                .expectError()
-                .verify();
+                .expectErrorMatches(
+                        throwable -> throwable.getClass().toString().contains("RemoteServiceException") &&
+                                throwable.getMessage().contains("test-value")
+                ).verify();
 
         verify(logService, times(2)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
@@ -300,7 +302,7 @@ class ReactRequestServiceTest {
         List<String> errorLines = errorInfoCaptor.getAllValues();
         List<String> keyErrorValues = keyCaptor.getAllValues();
 
-        assertThat(errorLines.get(0)).contains("Error in response details", "500 Internal Server Error");
+        assertThat(errorLines.get(0)).contains("Error in response details", "RemoteServiceException");
         assertThat(keyErrorValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
 
     }
@@ -451,9 +453,9 @@ class ReactRequestServiceTest {
         List<String> keyValues = keyCaptor.getAllValues();
 
         assertThat(logLines.get(0)).contains("Send", "/test-path");
-        assertThat(logLines.get(1)).contains("Response", "status", "200 OK");          //todo Timeout!!!
+        assertThat(logLines.get(1)).contains("Response", "status", "200 OK");
         assertThat(logLines.get(2)).contains("Retrying, 0");
-        assertThat(logLines.get(3)).contains("Response", "status", "200 OK");          //todo Timeout!!!
+        assertThat(logLines.get(3)).contains("Response", "status", "200 OK");
         assertThat(keyValues).isNotEmpty().allMatch(key -> key.equals("test-guid"));
 
         verify(logService, times(2)).error(keyCaptor.capture(), errorInfoCaptor.capture());

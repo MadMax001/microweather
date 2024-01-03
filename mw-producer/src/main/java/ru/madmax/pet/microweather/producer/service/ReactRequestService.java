@@ -14,9 +14,11 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import ru.madmax.pet.microweather.common.model.Point;
 import ru.madmax.pet.microweather.common.model.Weather;
+import ru.madmax.pet.microweather.producer.exception.RemoteServiceException;
 import ru.madmax.pet.microweather.producer.model.RequestParams;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
@@ -57,11 +59,9 @@ public class ReactRequestService implements WeatherRequestService {
                 .body(BodyInserters.fromValue(point))
                 .exchangeToMono(response -> {
                     logResponseDetails(response, params);
-                    if (response.statusCode().is5xxServerError() || response.statusCode().is4xxClientError())
-                        return response.createException().flatMap(Mono::error);
                     if (response.statusCode().is2xxSuccessful())
-                        return response.bodyToMono(Weather.class);
-                    return Mono.empty();
+                        return createSuccessMonoResponse(response);
+                    return createErrorMonoResponse(response);
                 })
                 .retryWhen(Retry.backoff(weatherRetryAttempts, Duration.ofMillis(weatherRetryDuration))
                         .doBeforeRetry(retry -> logService.info(
@@ -90,6 +90,21 @@ public class ReactRequestService implements WeatherRequestService {
                     headersListString)
         );
     }
+
+    private Mono<Weather> createSuccessMonoResponse(ClientResponse response) {
+        return response.bodyToMono(Weather.class);
+    }
+
+    private Mono<Weather> createErrorMonoResponse(final ClientResponse response) {
+        List<String> requestErrorHeaderValues =
+                (response.headers().asHttpHeaders().get("request-error"));
+        if (requestErrorHeaderValues != null && !requestErrorHeaderValues.isEmpty()) {
+            Throwable error = new RemoteServiceException(requestErrorHeaderValues.get(0));
+            return Mono.error(error);
+        } else
+            return response.createException().flatMap(Mono::error);
+    }
+
 
     private void logErrorDetails(String guid, Throwable throwable) {
         logService.error(

@@ -26,12 +26,6 @@ public class ProducerControllerV1 {
                 ResponseEntity
                         .ok()
                         .body(guid)
-        )
-                .onErrorResume(error->
-                        Mono.just(ResponseEntity
-                                .internalServerError()
-                                .header("request-error", error.getMessage())
-                                .body(null))
-                );
+        );
     }
 }

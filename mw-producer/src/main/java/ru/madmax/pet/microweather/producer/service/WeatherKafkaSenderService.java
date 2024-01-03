@@ -6,7 +6,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
-import ru.madmax.pet.microweather.producer.exception.AppProducerException;
 
 
 import java.util.function.BiConsumer;
@@ -38,7 +37,7 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
     @Override
     public void produceMessage(String key, MessageDTO message) {
         try {
-            logService.info(key, "Send to broker");
+            logService.info(key, String.format("Send to broker with type %s", message.getType().name()));
             var sendResult = kafkaTemplate.send(sendClientTopic, key, message);
 
             sendResult.whenComplete((result, ex) -> {
@@ -52,8 +51,7 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
             });
 
         } catch (KafkaException ke) {
-
-            throw new AppProducerException(ke.getCause());
+            errorSendingHandler.accept(key, ke);
         }
 
     }

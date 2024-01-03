@@ -190,6 +190,7 @@ class WeatherFacadeServiceTest {
         verify(logService, times(1)).info(anyString(), anyString());
     }
 
+/*
     @Test
     void registerRequest_ReturnEmptyMono_andCheckForServicesCallsAndTheirParams() {
         final String guid = "test-guid-1";
@@ -227,6 +228,7 @@ class WeatherFacadeServiceTest {
 
         verify(logService, times(1)).info(anyString(), anyString());
     }
+*/
 
     @Test
     void registerRequest_AndThrowsAppProducerException_AndCheckReturningValue() {

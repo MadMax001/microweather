@@ -34,7 +34,6 @@ public class HttpClientConfiguration {
     public HttpClient httpClient() {
         var httpClient = HttpClient
                 .create()
-                //.wiretap(this.getClass().getCanonicalName(), LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, weatherRequestTimeout)
                 .doOnConnected(connection -> {
                     connection.addHandlerLast(
