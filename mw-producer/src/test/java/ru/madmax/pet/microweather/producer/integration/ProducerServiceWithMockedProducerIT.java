@@ -100,7 +100,7 @@ import static org.mockito.Mockito.*;
         topics = "${spring.kafka.topic.name}"
 )
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@DirtiesContext
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ProducerServiceWithMockedProducerIT {
     final WebTestClient webTestClient;
     MockWebServer remoteMockServer;
