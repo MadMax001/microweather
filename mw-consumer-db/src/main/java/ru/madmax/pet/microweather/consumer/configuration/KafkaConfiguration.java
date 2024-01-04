@@ -20,6 +20,8 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 
+import static org.springframework.kafka.support.serializer.JsonDeserializer.TYPE_MAPPINGS;
+
 @Configuration
 @EnableKafka
 public class KafkaConfiguration {
@@ -43,7 +45,7 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 //      Свойство задающее десериализатору возможность работать именно с нашим классом
-//        props.put(TYPE_MAPPINGS, "ru.madmax.pet.microweather.common.model.MessageDTO:ru.madmax.pet.microweather.common.model.MessageDTO");
+        props.put(TYPE_MAPPINGS, "ru.madmax.pet.microweather.common.model.MessageDTO:ru.madmax.pet.microweather.common.model.MessageDTO");
 
         // Размер буфера полученных сообщений, который вовзращается консьюмером
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
@@ -75,7 +77,7 @@ public class KafkaConfiguration {
         //Пул потоков (особенно для Concurrency>1), если его контролировать,
         // а не использовать внутренний пул
         var executor = new SimpleAsyncTaskExecutor("mw-consumer-");
-        executor.setConcurrencyLimit(10);
+        executor.setConcurrencyLimit(1);
         var listenerTaskExecutor = new ConcurrentTaskExecutor(executor);
         factory.getContainerProperties().setListenerTaskExecutor(listenerTaskExecutor);
         return factory;

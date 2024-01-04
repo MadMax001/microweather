@@ -7,7 +7,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
-import ru.madmax.pet.microweather.consumer.service.WeatherListenerService;
 import ru.madmax.pet.microweather.consumer.service.handler.SuccessConsumeHandler;
 
 
@@ -23,12 +22,11 @@ public class WeatherKafkaListenerService implements WeatherListenerService {
             containerFactory = "listenerContainerFactory")
     public void listen(
             @Payload MessageDTO message,
-            @Header(KafkaHeaders.KEY) String key,
+            @Header(name = KafkaHeaders.RECEIVED_KEY, required = false) String key,
             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-            @Header(KafkaHeaders.PARTITION) Integer partition,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
             @Header(KafkaHeaders.OFFSET) Long offset) {
-        logService.info(String.format("Successful receive[%s]: %s%nMetadata: partition: %s, offset: %s",
-                key,
+        logService.info(key, String.format("Successful receive: %s%nMetadata: partition: %s, offset: %s",
                 message,
                 partition,
                 offset));
