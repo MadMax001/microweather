@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class Slf4JLogService implements LogService {
     @Override
-    public void info(String message) {
-        log.info(message);
+    public void info(String key, String message) {
+        log.info(String.format("[%s]: %s", key, message));
     }
 
     @Override
@@ -17,8 +17,8 @@ public class Slf4JLogService implements LogService {
     }
 
     @Override
-    public void error(String message) {
-        log.error(message);
+    public void error(String key, String message) {
+        log.error(String.format("[%s]: %s", key, message));
     }
 
     @Override
