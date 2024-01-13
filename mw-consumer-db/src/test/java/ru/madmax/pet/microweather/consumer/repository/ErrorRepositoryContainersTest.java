@@ -5,20 +5,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.r2dbc.UncategorizedR2dbcException;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.r2dbc.BadSqlGrammarException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microweather.consumer.AbstractContainersIntegrationTest;
 import ru.madmax.pet.microweather.consumer.model.ErrorDomain;
 import ru.madmax.pet.microweather.consumer.model.TestErrorDomain;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataR2dbcTest
-@ActiveProfiles("test")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class ErrorRepositoryTest {
+class ErrorRepositoryContainersTest extends AbstractContainersIntegrationTest {
     final ErrorRepository errorRepository;
 
     @Test
@@ -54,13 +53,12 @@ class ErrorRepositoryTest {
     }
 
     @Test
-    void saveError_withTooLongFields_InH2DB_AndGetUncategorizedR2dbcException() {
+    void saveWeather_withTooLongFields_InPostgreSQLDB_AndGetBadSqlGrammarException() {
         ErrorDomain testError1 = TestErrorDomain.anErrorDomain()
                 .withId("__________________________________________________________________________________key_"
                         + System.currentTimeMillis()).build();
         var error1Mono = errorRepository.save(testError1);
-        assertThatThrownBy(error1Mono::block).isInstanceOf(UncategorizedR2dbcException.class);
+        assertThatThrownBy(error1Mono::block).isInstanceOf(BadSqlGrammarException.class);
 
     }
-
 }

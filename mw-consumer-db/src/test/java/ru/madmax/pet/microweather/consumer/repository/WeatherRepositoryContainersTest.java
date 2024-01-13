@@ -5,19 +5,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.r2dbc.UncategorizedR2dbcException;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.r2dbc.BadSqlGrammarException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microweather.consumer.AbstractContainersIntegrationTest;
 import ru.madmax.pet.microweather.consumer.model.TestWeatherDomain;
 import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataR2dbcTest
-@ActiveProfiles("test")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class WeatherRepositoryTest {
+class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest {
     final WeatherRepository weatherRepository;
 
     @Test
@@ -40,8 +40,6 @@ class WeatherRepositoryTest {
                 })
                 .expectComplete()
                 .verify();
-
-
     }
 
     @Test
@@ -58,13 +56,11 @@ class WeatherRepositoryTest {
     }
 
     @Test
-    void saveWeather_withTooLongFields_InH2DB_AndGetUncategorizedR2dbcException() {
+    void saveWeather_withTooLongFields_InPostgreSQLDB_AndGetBadSqlGrammarException() {
         WeatherDomain testWeather1 = TestWeatherDomain.aWeatherDomain()
                 .withId("__________________________________________________________________________________key_"
                         + System.currentTimeMillis()).build();
         var weather1Mono = weatherRepository.save(testWeather1);
-        assertThatThrownBy(weather1Mono::block).isInstanceOf(UncategorizedR2dbcException.class);
-
+        assertThatThrownBy(weather1Mono::block).isInstanceOf(BadSqlGrammarException.class);
     }
-
 }
