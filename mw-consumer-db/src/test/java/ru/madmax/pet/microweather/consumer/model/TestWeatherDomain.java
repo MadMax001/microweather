@@ -17,10 +17,12 @@ public class TestWeatherDomain implements TestBuilder<WeatherDomain> {
         WeatherDomain wd = new WeatherDomain();
         wd.setId(id);
         var weather =  TestWeatherBuilder.aWeather().build();
-        wd.setTemperature(weather.getFact().getTemp());
-        wd.setWind(weather.getFact().getWindSpeed());
-        wd.setUrl(weather.getInfo().getUrl());
+//        wd.setTemperature(weather.getFact().getTemp());
+//        wd.setWind(weather.getFact().getWindSpeed());
+//        wd.setUrl(weather.getInfo().getUrl());
         wd.setNow(weather.getNow());
+        wd.setFact(weather.getFact());
+        wd.setInfo(weather.getInfo());
         return wd;
     }
 }

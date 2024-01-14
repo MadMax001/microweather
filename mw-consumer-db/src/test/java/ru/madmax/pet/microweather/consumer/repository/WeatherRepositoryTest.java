@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.r2dbc.UncategorizedR2dbcException;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microweather.consumer.configuration.ConsumerR2dbcConfiguration;
 import ru.madmax.pet.microweather.consumer.model.TestWeatherDomain;
 import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 
@@ -16,6 +18,9 @@ import static org.assertj.core.api.Assertions.*;
 
 @DataR2dbcTest
 @ActiveProfiles("test")
+@Import({
+        ConsumerR2dbcConfiguration.class
+})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class WeatherRepositoryTest {
     final WeatherRepository weatherRepository;
@@ -34,9 +39,16 @@ class WeatherRepositoryTest {
                 .assertNext(element -> {
                     assertThat(element.getId()).isEqualTo(weather.getId());
                     assertThat(element.getNow()).isEqualTo(weather.getNow());
+/*
                     assertThat(element.getTemperature()).isEqualTo(weather.getTemperature(), withPrecision(2d));
                     assertThat(element.getWind()).isEqualTo(weather.getWind(), withPrecision(2d));
                     assertThat(element.getUrl()).isEqualTo(weather.getUrl());
+*/
+
+                    assertThat(element.getFact().getTemp()).isEqualTo(weather.getFact().getTemp(), withPrecision(2d));
+                    assertThat(element.getFact().getWindSpeed()).isEqualTo(weather.getFact().getWindSpeed(), withPrecision(2d));
+                    assertThat(element.getInfo().getUrl()).isEqualTo(weather.getInfo().getUrl());
+
                 })
                 .expectComplete()
                 .verify();

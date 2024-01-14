@@ -34,10 +34,15 @@ class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest 
                 .assertNext(element -> {
                     assertThat(element.getId()).isEqualTo(weather.getId());
                     assertThat(element.getNow()).isEqualTo(weather.getNow());
+/*
                     assertThat(element.getTemperature()).isEqualTo(weather.getTemperature(), withPrecision(2d));
                     assertThat(element.getWind()).isEqualTo(weather.getWind(), withPrecision(2d));
                     assertThat(element.getUrl()).isEqualTo(weather.getUrl());
-                })
+*/
+
+                    assertThat(element.getFact().getTemp()).isEqualTo(weather.getFact().getTemp(), withPrecision(2d));
+                    assertThat(element.getFact().getWindSpeed()).isEqualTo(weather.getFact().getWindSpeed(), withPrecision(2d));
+                    assertThat(element.getInfo().getUrl()).isEqualTo(weather.getInfo().getUrl());                })
                 .expectComplete()
                 .verify();
     }
