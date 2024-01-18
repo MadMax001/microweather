@@ -9,7 +9,7 @@ import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aWeatherDomain")
 @With
-public class TestWeatherDomain implements TestBuilder<WeatherDomain> {
+public class TestWeatherDomainBuilder implements TestBuilder<WeatherDomain> {
     private String id = "test_domain_key";
 
     @Override

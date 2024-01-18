@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microweather.consumer.AbstractContainersIntegrationTest;
 import ru.madmax.pet.microweather.consumer.model.ErrorDomain;
-import ru.madmax.pet.microweather.consumer.model.TestErrorDomain;
+import ru.madmax.pet.microweather.consumer.model.TestErrorDomainBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,7 +22,7 @@ class ErrorRepositoryContainersTest extends AbstractContainersIntegrationTest {
 
     @Test
     void saveError_AndFindIt() {
-        ErrorDomain errorDomain = TestErrorDomain.anErrorDomain()
+        ErrorDomain errorDomain = TestErrorDomainBuilder.anErrorDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
         ErrorDomain error = errorRepository.save(errorDomain).block();
 
@@ -41,9 +41,9 @@ class ErrorRepositoryContainersTest extends AbstractContainersIntegrationTest {
 
     @Test
     void saveTwoErrors_withSameKeys_AndGetDuplicateKeyException() {
-        ErrorDomain testError1 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError1 = TestErrorDomainBuilder.anErrorDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
-        ErrorDomain testError2 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError2 = TestErrorDomainBuilder.anErrorDomain()
                 .withId(testError1.getId()).build();
 
         var error1Mono = errorRepository.save(testError1);
@@ -54,7 +54,7 @@ class ErrorRepositoryContainersTest extends AbstractContainersIntegrationTest {
 
     @Test
     void saveWeather_withTooLongFields_InPostgreSQLDB_AndGetBadSqlGrammarException() {
-        ErrorDomain testError1 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError1 = TestErrorDomainBuilder.anErrorDomain()
                 .withId("__________________________________________________________________________________key_"
                         + System.currentTimeMillis()).build();
         var error1Mono = errorRepository.save(testError1);

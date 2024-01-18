@@ -9,7 +9,7 @@ import org.springframework.r2dbc.BadSqlGrammarException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microweather.consumer.AbstractContainersIntegrationTest;
-import ru.madmax.pet.microweather.consumer.model.TestWeatherDomain;
+import ru.madmax.pet.microweather.consumer.model.TestWeatherDomainBuilder;
 import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 
 import static org.assertj.core.api.Assertions.*;
@@ -22,7 +22,7 @@ class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest 
 
     @Test
     void saveWeather_AndFindIt() {
-        WeatherDomain testWeather = TestWeatherDomain.aWeatherDomain()
+        WeatherDomain testWeather = TestWeatherDomainBuilder.aWeatherDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
         WeatherDomain weather = weatherRepository.save(testWeather).block();
 
@@ -44,9 +44,9 @@ class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest 
 
     @Test
     void saveTwoWeathers_withSameKeys_AndGetDuplicateKeyException() {
-        WeatherDomain testWeather1 = TestWeatherDomain.aWeatherDomain()
+        WeatherDomain testWeather1 = TestWeatherDomainBuilder.aWeatherDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
-        WeatherDomain testWeather2 = TestWeatherDomain.aWeatherDomain()
+        WeatherDomain testWeather2 = TestWeatherDomainBuilder.aWeatherDomain()
                 .withId(testWeather1.getId()).build();
 
         var weather1Mono = weatherRepository.save(testWeather1);
@@ -57,7 +57,7 @@ class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest 
 
     @Test
     void saveWeather_withTooLongFields_InPostgreSQLDB_AndGetBadSqlGrammarException() {
-        WeatherDomain testWeather1 = TestWeatherDomain.aWeatherDomain()
+        WeatherDomain testWeather1 = TestWeatherDomainBuilder.aWeatherDomain()
                 .withId("__________________________________________________________________________________key_"
                         + System.currentTimeMillis()).build();
         var weather1Mono = weatherRepository.save(testWeather1);

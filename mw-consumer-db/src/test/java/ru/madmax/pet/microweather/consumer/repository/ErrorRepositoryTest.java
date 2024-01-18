@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microweather.consumer.model.ErrorDomain;
-import ru.madmax.pet.microweather.consumer.model.TestErrorDomain;
+import ru.madmax.pet.microweather.consumer.model.TestErrorDomainBuilder;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,7 +23,7 @@ class ErrorRepositoryTest {
 
     @Test
     void saveError_AndFindIt() {
-        ErrorDomain errorDomain = TestErrorDomain.anErrorDomain()
+        ErrorDomain errorDomain = TestErrorDomainBuilder.anErrorDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
         ErrorDomain error = errorRepository.save(errorDomain).block();
 
@@ -42,9 +42,9 @@ class ErrorRepositoryTest {
 
     @Test
     void saveTwoErrors_withSameKeys_AndGetDuplicateKeyException() {
-        ErrorDomain testError1 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError1 = TestErrorDomainBuilder.anErrorDomain()
                 .withId("key_" + System.currentTimeMillis()).build();
-        ErrorDomain testError2 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError2 = TestErrorDomainBuilder.anErrorDomain()
                 .withId(testError1.getId()).build();
 
         var error1Mono = errorRepository.save(testError1);
@@ -55,7 +55,7 @@ class ErrorRepositoryTest {
 
     @Test
     void saveError_withTooLongFields_InH2DB_AndGetUncategorizedR2dbcException() {
-        ErrorDomain testError1 = TestErrorDomain.anErrorDomain()
+        ErrorDomain testError1 = TestErrorDomainBuilder.anErrorDomain()
                 .withId("__________________________________________________________________________________key_"
                         + System.currentTimeMillis()).build();
         var error1Mono = errorRepository.save(testError1);

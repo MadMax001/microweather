@@ -8,7 +8,7 @@ import ru.madmax.pet.microweather.common.model.TestBuilder;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "anErrorDomain")
 @With
-public class TestErrorDomain implements TestBuilder<ErrorDomain> {
+public class TestErrorDomainBuilder implements TestBuilder<ErrorDomain> {
     private String id = "test_domain_key";
     private String details = "error";
     @Override
