@@ -73,7 +73,6 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>yandex-weather</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
