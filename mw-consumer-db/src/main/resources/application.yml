@@ -6,7 +6,6 @@ spring:
     consumer:
       group-id: mw-group-db
       client-id: appcons
-      auto-offset-reset: earliest
     replication:
       factor: 1
     partition:

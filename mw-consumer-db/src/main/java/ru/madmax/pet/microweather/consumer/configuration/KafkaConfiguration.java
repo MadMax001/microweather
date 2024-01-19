@@ -52,6 +52,8 @@ public class KafkaConfiguration {
         // Максимальный временной инетрвал, в течение которого консьюмер должен вывать poll.
         // Иначе брокер считает, что косьюмер отвалился
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 3_000);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
 
 
         var kafkaConsumerFactory = new DefaultKafkaConsumerFactory<String, MessageDTO>(props);

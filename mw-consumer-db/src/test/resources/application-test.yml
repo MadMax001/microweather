@@ -14,7 +14,6 @@ spring:
       number: 1
     consumer:
       group-id: test-group-db
-      auto-offset-reset: earliest
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/changelog.sql
