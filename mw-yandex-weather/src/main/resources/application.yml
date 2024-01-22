@@ -7,3 +7,5 @@ app:
     retry:
       duration: 150
       attempts: 3
+server:
+  shutdown: graceful

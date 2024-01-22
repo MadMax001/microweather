@@ -9,6 +9,8 @@ app:
         id: yandex
         host: http://localhost:8081
         path: /api/v1/weather
+server:
+  shutdown: graceful
 spring:
   kafka:
     bootstrap-servers: localhost:9093
