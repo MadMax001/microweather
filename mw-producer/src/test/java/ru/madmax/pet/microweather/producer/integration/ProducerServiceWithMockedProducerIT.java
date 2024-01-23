@@ -501,23 +501,18 @@ class ProducerServiceWithMockedProducerIT {
         ExecutorService executorService = Executors.newFixedThreadPool(concurrency);
         for (int i = 0; i < concurrency; i++) {
             var stringRequest = objectMapper.writeValueAsString(requests[i]);
-            tasks.add(new Callable<>() {
-                @Override
-                public String call() {
-                    return webTestClient
-                            .post()
-                            .uri(SERVICE_LOCAL_PATH)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(BodyInserters.fromValue(stringRequest))
-                            .accept(MediaType.APPLICATION_JSON)
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
-                            .returnResult(String.class)
-                            .getResponseBody()
-                            .blockFirst();
-                }
-            });
+            tasks.add(() -> webTestClient
+                    .post()
+                    .uri(SERVICE_LOCAL_PATH)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(stringRequest))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
+                    .returnResult(String.class)
+                    .getResponseBody()
+                    .blockFirst());
         }
         Set<String> guidSet =
                 executorService.invokeAll(tasks, 1, TimeUnit.SECONDS)
