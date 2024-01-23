@@ -1,8 +1,11 @@
 package ru.madmax.pet.microweather.consumer.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -20,12 +23,16 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 
+import java.util.Collection;
+
 import static org.springframework.kafka.support.serializer.JsonDeserializer.TYPE_MAPPINGS;
 
 @Configuration
 @EnableKafka
+@RequiredArgsConstructor
 public class KafkaConfiguration {
 
+    private final ConsumerBarrierReady consumerBarrierReady;
     /*
     // Инициализацию ObjectMapper-а делаем в виде бина
     // и настраиваем здесь спеицичесике правила для преобразования,
@@ -49,8 +56,8 @@ public class KafkaConfiguration {
 
         // Размер буфера полученных сообщений, который вовзращается консьюмером
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1);
-        // Максимальный временной инетрвал, в течение которого консьюмер должен вывать poll.
-        // Иначе брокер считает, что косьюмер отвалился
+        // Максимальный временной интервал, в течение которого консьюмер должен выдавать poll.
+        // Иначе брокер считает, что консьюмер отвалился
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 3_000);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
@@ -75,7 +82,7 @@ public class KafkaConfiguration {
         factory.getContainerProperties().setIdleBetweenPolls(1_000);
         // poll вызвался, но данных сейчас нет и мы ждем указанное время
         factory.getContainerProperties().setPollTimeout(1_000);
-
+        factory.getContainerProperties().setConsumerRebalanceListener(appConsumerRebalanceListener());
         //Пул потоков (особенно для Concurrency>1), если его контролировать,
         // а не использовать внутренний пул
         var executor = new SimpleAsyncTaskExecutor("mw-consumer-");
@@ -84,6 +91,20 @@ public class KafkaConfiguration {
         factory.getContainerProperties().setListenerTaskExecutor(listenerTaskExecutor);
         return factory;
     }
+
+    @Bean
+    public ConsumerRebalanceListener appConsumerRebalanceListener() {
+        return new ConsumerRebalanceListener() {
+            @Override
+            public void onPartitionsRevoked(Collection<TopicPartition> collection) {}
+
+            @Override
+            public void onPartitionsAssigned(Collection<TopicPartition> collection) {
+                consumerBarrierReady.countDown();
+            }
+        };
+    }
+
 
     /*
     // Кафка при первом обращении к несуществующему топику должна создавать его, если его нет

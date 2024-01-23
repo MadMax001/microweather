@@ -24,7 +24,9 @@ import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.TestMessageDTOBuilder;
 import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
 import ru.madmax.pet.microweather.consumer.AbstractContainersIntegrationTest;
+import ru.madmax.pet.microweather.consumer.configuration.ConsumerBarrierReady;
 import ru.madmax.pet.microweather.consumer.configuration.KafkaConfiguration;
+import ru.madmax.pet.microweather.consumer.exception.AppConsumerException;
 import ru.madmax.pet.microweather.consumer.service.LogService;
 import ru.madmax.pet.microweather.consumer.service.Slf4JLogService;
 import ru.madmax.pet.microweather.consumer.service.WeatherKafkaListenerService;
@@ -56,6 +58,7 @@ import static org.mockito.Mockito.times;
 })
 @ContextConfiguration(classes = {
         ObjectMapper.class,
+        ConsumerBarrierReady.class,
         KafkaProperties.class,
         KafkaConfiguration.class,
         Slf4JLogService.class,
@@ -86,8 +89,16 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     final ObjectMapper objectMapper;
     final KafkaTemplate<String, MessageDTO> kafkaTemplate;
     final WeatherListenerService weatherListenerService;
+    final ConsumerBarrierReady consumerBarrierReady;
     ExecutorService service = Executors.newCachedThreadPool();
     Random random = new Random();
+
+    @BeforeEach
+    void setUp() throws InterruptedException {
+        var waitingResult = consumerBarrierReady.await(30, TimeUnit.SECONDS);
+        if (!waitingResult)
+            throw new AppConsumerException(new RuntimeException("Kafka is not ready"));
+    }
 
     @Test
     void sendTestMessage_andConsumeIt_AndCheckSuccessConsumeHandlerParameters_AndCountLogs()
@@ -103,7 +114,6 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
         doNothing().when(successConsumeHandler).accept(anyString(), any(MessageDTO.class));
         var task = createKafkaSenderTask(testTopic, key, messageDTO);
         service.submit(task).get();
-
         verify(logService, times(1)).info(anyString(), anyString());
         verify(logService, never()).error(anyString(), anyString());
 
@@ -168,10 +178,10 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     private Callable<SendResult<String, MessageDTO>> createKafkaSenderTask
             (String topicName, String key, MessageDTO message) {
         return () -> {
-            Thread.sleep(2000 + random.nextInt(300));
+            //Thread.sleep(2000 + random.nextInt(300));
             var stringMessageDTOSendResult =
                     kafkaTemplate.send(topicName, key, message);
-            Thread.sleep(2000 + random.nextInt(300));
+            //Thread.sleep(2000 + random.nextInt(300));
             return stringMessageDTOSendResult.get();
         };
     }
