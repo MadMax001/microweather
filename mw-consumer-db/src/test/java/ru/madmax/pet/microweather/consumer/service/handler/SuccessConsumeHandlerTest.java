@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -33,6 +34,8 @@ import static ru.madmax.pet.microweather.common.model.MessageType.ERROR;
 import static ru.madmax.pet.microweather.common.model.MessageType.WEATHER;
 
 @ExtendWith({MockitoExtension.class})
+@Tag("Containers")
+@Tag("EmbeddedKafka+H2")
 class SuccessConsumeHandlerTest {
     SuccessConsumeHandler successConsumeHandler;
 

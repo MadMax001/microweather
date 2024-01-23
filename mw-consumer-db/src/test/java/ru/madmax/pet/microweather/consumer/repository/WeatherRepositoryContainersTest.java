@@ -1,6 +1,7 @@
 package ru.madmax.pet.microweather.consumer.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataR2dbcTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@Tag("Containers")
 class WeatherRepositoryContainersTest extends AbstractContainersIntegrationTest {
     final WeatherRepository weatherRepository;
 

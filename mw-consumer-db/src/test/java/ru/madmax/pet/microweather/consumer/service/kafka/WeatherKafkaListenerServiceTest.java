@@ -3,6 +3,8 @@ package ru.madmax.pet.microweather.consumer.service.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -67,6 +69,7 @@ import static org.mockito.Mockito.*;
 )
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Tag("EmbeddedKafka+H2")
 class WeatherKafkaListenerServiceTest {
     @Value("${spring.kafka.topic.name}")
     String testTopic;

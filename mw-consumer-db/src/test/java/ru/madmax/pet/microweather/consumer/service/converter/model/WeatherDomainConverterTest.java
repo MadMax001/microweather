@@ -1,12 +1,15 @@
 package ru.madmax.pet.microweather.consumer.service.converter.model;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
 import ru.madmax.pet.microweather.consumer.model.TestWeatherDomainBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Tag("Containers")
+@Tag("EmbeddedKafka+H2")
 class WeatherDomainConverterTest {
     WeatherDomainConverter weatherDomainConverter;
 
