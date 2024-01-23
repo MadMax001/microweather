@@ -61,6 +61,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+
 @ExtendWith({SpringExtension.class, MockitoExtension.class/*, EmbeddedKafkaExtension.class*/})
 @ActiveProfiles("test")
 @EnableConfigurationProperties
@@ -110,7 +112,6 @@ class ProducerServiceWithMockedProducerIT {
     KafkaTemplate<String, MessageDTO> kafkaTemplate;
     String remoteServiceURL;
     final static String SERVICE_LOCAL_PATH = "/api/v1/register";
-    final static String ERROR_HEADER_KEY = "request-error";
     @Captor
     ArgumentCaptor<String> stringCaptor;
     BlockingQueue<ConsumerRecord<String, MessageDTO>> records = new LinkedBlockingQueue<>();
@@ -158,7 +159,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -206,7 +207,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -261,7 +262,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -303,7 +304,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectHeader().valueEquals(ERROR_HEADER_KEY, "Point is not set")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Point is not set")
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -333,7 +334,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectHeader().valueEquals(ERROR_HEADER_KEY, "Wrong source")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Wrong source")
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -374,7 +375,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -406,7 +407,7 @@ class ProducerServiceWithMockedProducerIT {
 
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .addHeader(ERROR_HEADER_KEY, "IllegalModelStructureException: " + remoteServiceResponseContent)
+                .addHeader(HEADER_REQUEST_ERROR_KEY, "IllegalModelStructureException: " + remoteServiceResponseContent)
                 .setResponseCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
 
         var receivedResponseEntityContent = webTestClient
@@ -417,7 +418,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -511,7 +512,7 @@ class ProducerServiceWithMockedProducerIT {
                             .accept(MediaType.APPLICATION_JSON)
                             .exchange()
                             .expectStatus().isOk()
-                            .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                            .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                             .returnResult(String.class)
                             .getResponseBody()
                             .blockFirst();
@@ -568,7 +569,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().doesNotExist(ERROR_HEADER_KEY)
+                .expectHeader().doesNotExist(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -613,7 +614,7 @@ class ProducerServiceWithMockedProducerIT {
                 var response = new MockResponse();
                 response.addHeader("Content-Type", MediaType.APPLICATION_JSON);
                 if (errorDetailsHeaderValue != null) {
-                    response.addHeader(ERROR_HEADER_KEY, errorDetailsHeaderValue);
+                    response.addHeader(HEADER_REQUEST_ERROR_KEY, errorDetailsHeaderValue);
                     response.setResponseCode(responseCode);
                 }
                 return response

@@ -13,11 +13,12 @@ import ru.madmax.pet.microweather.producer.exception.WrongSourceException;
 
 import java.util.stream.Collectors;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+
 @ControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
 public class ExceptionHandlerController {
-    private static final String REQUEST_ERROR_HEADER_NAME = "request-error";
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<Void>> handleValidationWebExchangeBindExceptions(
             WebExchangeBindException ex) {
@@ -29,7 +30,7 @@ public class ExceptionHandlerController {
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .badRequest()
-                .header(REQUEST_ERROR_HEADER_NAME, errorMessage)
+                .header(HEADER_REQUEST_ERROR_KEY, errorMessage)
                 .body(null);
 
         return Mono.just(responseEntity);
@@ -45,7 +46,7 @@ public class ExceptionHandlerController {
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .badRequest()
-                .header(REQUEST_ERROR_HEADER_NAME, errorMessage)
+                .header(HEADER_REQUEST_ERROR_KEY, errorMessage)
                 .body(null);
 
         return Mono.just(responseEntity);
@@ -58,7 +59,7 @@ public class ExceptionHandlerController {
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .badRequest()
-                .header(REQUEST_ERROR_HEADER_NAME, ex.getMessage())
+                .header(HEADER_REQUEST_ERROR_KEY, ex.getMessage())
                 .body(null);
 
         return Mono.just(responseEntity);
@@ -69,7 +70,7 @@ public class ExceptionHandlerController {
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .internalServerError()
-                .header(REQUEST_ERROR_HEADER_NAME, ex.getMessage())
+                .header(HEADER_REQUEST_ERROR_KEY, ex.getMessage())
                 .body(null);
 
         return Mono.just(responseEntity);

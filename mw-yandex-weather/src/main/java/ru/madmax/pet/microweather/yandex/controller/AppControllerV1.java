@@ -10,6 +10,9 @@ import ru.madmax.pet.microweather.common.model.Point;
 import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.yandex.service.WeatherLoaderService;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+
 
 @RestController
 @AllArgsConstructor
@@ -20,7 +23,7 @@ public class AppControllerV1 {
 
     @PostMapping("/weather")
     public Mono<ResponseEntity<Weather>> weatherRequest(@RequestBody @Valid Point point,
-                                                        @RequestHeader(name="request-guid") String requestGuid) {
+                                                        @RequestHeader(name= HEADER_REQUEST_GUID_KEY) String requestGuid) {
 
         var monoWeather = loaderService.requestWeatherByPoint(
                 Point.builder()
@@ -32,14 +35,14 @@ public class AppControllerV1 {
                 .map(weather ->
                         ResponseEntity
                                 .ok()
-                                .header("request-guid", requestGuid)
+                                .header(HEADER_REQUEST_GUID_KEY, requestGuid)
                                 .body(weather)
                 )
                 .onErrorResume(error->
                         Mono.just(ResponseEntity
                                 .internalServerError()
-                                .header("request-guid", requestGuid)
-                                .header("request-error", error.getMessage())
+                                .header(HEADER_REQUEST_GUID_KEY, requestGuid)
+                                .header(HEADER_REQUEST_ERROR_KEY, error.getMessage())
                                 .body(null))
                 );
     }

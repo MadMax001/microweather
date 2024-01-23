@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+
 
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
@@ -45,9 +48,7 @@ class YandexServiceIT {
     MockWebServer remoteMockServer;
     String remoteYandexURL;
     final static String SERVICE_LOCAL_PATH = "/api/v1/weather";
-    final static String GUID_HEADER_KEY = "request-guid";
     final static String GUID_HEADER_VALUE = "testguid";
-    final static String ERROR_HEADER_KEY = "request-error";
     @BeforeEach
     void initialize() throws IOException {
         remoteMockServer = new MockWebServer();
@@ -77,11 +78,11 @@ class YandexServiceIT {
                 .uri(SERVICE_LOCAL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringPoint))
-                .header(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .header(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().valueEquals(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
                 .returnResult(Weather.class)
                 .getResponseBody();
 
@@ -108,12 +109,12 @@ class YandexServiceIT {
                 .uri(SERVICE_LOCAL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringPoint))
-                .header(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .header(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals(GUID_HEADER_KEY, GUID_HEADER_VALUE)
-                .expectHeader().exists(ERROR_HEADER_KEY)
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
+                .expectHeader().exists(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(Void.class)
                 .getResponseBody();
 
@@ -138,12 +139,12 @@ class YandexServiceIT {
                 .uri(SERVICE_LOCAL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringPoint))
-                .header(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .header(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals(GUID_HEADER_KEY, GUID_HEADER_VALUE)
-                .expectHeader().exists(ERROR_HEADER_KEY)
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
+                .expectHeader().exists(HEADER_REQUEST_ERROR_KEY)
                 .returnResult(Void.class)
                 .getResponseBody();
 
@@ -169,12 +170,12 @@ class YandexServiceIT {
                 .uri(SERVICE_LOCAL_PATH)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringPoint))
-                .header(GUID_HEADER_KEY, GUID_HEADER_VALUE)
+                .header(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals(GUID_HEADER_KEY, GUID_HEADER_VALUE)
-                .expectHeader().value(ERROR_HEADER_KEY,
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, GUID_HEADER_VALUE)
+                .expectHeader().value(HEADER_REQUEST_ERROR_KEY,
                         stringContainsInOrder("IllegalModelStructureException", stringContent))
                 .returnResult(Void.class)
                 .getResponseBody();

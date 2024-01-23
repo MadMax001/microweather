@@ -21,6 +21,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+
 @ActiveProfiles("test")
 @WebFluxTest(controllers = {AppControllerV1.class, ExceptionHandlerController.class})                   //аннотация автоматом конфигурит webTestClient
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -42,11 +45,11 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectHeader().valueEquals("request-guid", "testguid")
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
                 .returnResult(String.class)
                 .getResponseBody()
                 .blockFirst();
@@ -63,12 +66,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-guid", "testguid")
-                .expectHeader().valueEquals("request-error", "Latitude is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Latitude is not set");
 
     }
 
@@ -81,12 +84,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-guid", "testguid")
-                .expectHeader().valueEquals("request-error", "Longitude is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Longitude is not set");
 
     }
 
@@ -99,12 +102,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-//                .header("request-guid", "testguid")
+//                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().doesNotExist("request-guid")
-                .expectHeader().value("request-error", containsString("Required header 'request-guid' is not present"));
+                .expectHeader().doesNotExist(HEADER_REQUEST_GUID_KEY)
+                .expectHeader().value(HEADER_REQUEST_ERROR_KEY, containsString("Required header '" + HEADER_REQUEST_GUID_KEY + "' is not present"));
 
     }
 
@@ -119,12 +122,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals("request-guid", "testguid")
-                .expectHeader().valueEquals("request-error", "test error");
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "test error");
 
 
     }
@@ -141,12 +144,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals("request-guid", "testguid")
-                .expectHeader().valueEquals("request-error", "Error in process")
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Error in process")
                 .returnResult(String.class)
                 .getResponseBody()
                 .blockFirst();
@@ -164,12 +167,12 @@ class AppControllerV1Test {
                 .uri("/api/v1/weather")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(stringContent))
-                .header("request-guid", "testguid")
+                .header(HEADER_REQUEST_GUID_KEY, "testguid")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-guid", "testguid")
-                .expectHeader().value("request-error",
+                .expectHeader().valueEquals(HEADER_REQUEST_GUID_KEY, "testguid")
+                .expectHeader().value(HEADER_REQUEST_ERROR_KEY,
                         containsString("Cannot deserialize value of type `java.lang.Double` from String"));
 
     }

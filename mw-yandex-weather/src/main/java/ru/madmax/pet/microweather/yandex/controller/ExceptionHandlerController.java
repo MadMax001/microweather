@@ -14,16 +14,18 @@ import reactor.core.publisher.Mono;
 
 import java.util.stream.Collectors;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+
+
 @ControllerAdvice
 @RequiredArgsConstructor
 @Slf4j
 public class ExceptionHandlerController {
-    private static final String REQUEST_GUID_HEADER_NAME = "request-guid";
-    private static final String REQUEST_ERROR_HEADER_NAME = "request-error";
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<Void>> handleValidationWebExchangeBindExceptions(
             WebExchangeBindException ex,
-            @RequestHeader(name= REQUEST_GUID_HEADER_NAME, required = false) String requestGuid) {
+            @RequestHeader(name = HEADER_REQUEST_GUID_KEY, required = false) String requestGuid) {
         var errorMessage = ex.getBindingResult().getAllErrors()
                 .stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -31,9 +33,9 @@ public class ExceptionHandlerController {
         log.error(errorMessage);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(REQUEST_ERROR_HEADER_NAME, errorMessage);
+        headers.add(HEADER_REQUEST_ERROR_KEY, errorMessage);
         if (requestGuid != null)
-            headers.add(REQUEST_GUID_HEADER_NAME, requestGuid);
+            headers.add(HEADER_REQUEST_GUID_KEY, requestGuid);
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .badRequest()
@@ -47,14 +49,14 @@ public class ExceptionHandlerController {
     @ExceptionHandler(ServerWebInputException.class)
     public Mono<ResponseEntity<Void>> handleValidationServerWebInputExceptions(
             ServerWebInputException ex,
-            @RequestHeader(name= REQUEST_GUID_HEADER_NAME, required = false) String requestGuid) {
+            @RequestHeader(name= HEADER_REQUEST_GUID_KEY, required = false) String requestGuid) {
         var errorMessage = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
         log.error(errorMessage);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(REQUEST_ERROR_HEADER_NAME, errorMessage);
+        headers.add(HEADER_REQUEST_ERROR_KEY, errorMessage);
         if (requestGuid != null)
-            headers.add(REQUEST_GUID_HEADER_NAME, requestGuid);
+            headers.add(HEADER_REQUEST_GUID_KEY, requestGuid);
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .badRequest()
@@ -68,11 +70,11 @@ public class ExceptionHandlerController {
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<Void>> handleExceptions(
             Exception ex,
-            @RequestHeader(name= REQUEST_GUID_HEADER_NAME, required = false) String requestGuid) {
+            @RequestHeader(name= HEADER_REQUEST_GUID_KEY, required = false) String requestGuid) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add(REQUEST_ERROR_HEADER_NAME, ex.getMessage());
+        headers.add(HEADER_REQUEST_ERROR_KEY, ex.getMessage());
         if (requestGuid != null)
-            headers.add(REQUEST_GUID_HEADER_NAME, requestGuid);
+            headers.add(HEADER_REQUEST_GUID_KEY, requestGuid);
 
         ResponseEntity<Void> responseEntity = ResponseEntity
                 .internalServerError()

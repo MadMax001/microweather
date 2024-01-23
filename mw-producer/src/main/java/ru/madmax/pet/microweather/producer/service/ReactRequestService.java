@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+
 @Service
 public class ReactRequestService implements WeatherRequestService {
     private final HttpClient httpClient;
@@ -48,7 +51,7 @@ public class ReactRequestService implements WeatherRequestService {
                 .baseUrl(String.format("%s://%s",
                         params.getUrl().getProtocol(),
                         params.getUrl().getAuthority()))
-                .defaultHeader("request-guid", params.getGuid())
+                .defaultHeader(HEADER_REQUEST_GUID_KEY, params.getGuid())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
         return webClient
@@ -97,7 +100,7 @@ public class ReactRequestService implements WeatherRequestService {
 
     private Mono<Weather> createErrorMonoResponse(final ClientResponse response) {
         List<String> requestErrorHeaderValues =
-                (response.headers().asHttpHeaders().get("request-error"));
+                (response.headers().asHttpHeaders().get(HEADER_REQUEST_ERROR_KEY));
         if (requestErrorHeaderValues != null && !requestErrorHeaderValues.isEmpty()) {
             Throwable error = new RemoteServiceException(requestErrorHeaderValues.get(0));
             return Mono.error(error);

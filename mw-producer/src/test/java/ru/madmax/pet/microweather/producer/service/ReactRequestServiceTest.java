@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @TestPropertySource(properties = {"app.weather.timeout=1000"})
@@ -111,7 +113,7 @@ class ReactRequestServiceTest {
 
         RecordedRequest request = remoteMockServer.takeRequest();
         assertThat(request.getMethod()).isEqualTo("POST");
-        assertThat(request.getHeader("request-guid")).isEqualTo("test-guid");
+        assertThat(request.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
         assertThat(request.getRequestLine()).contains(url.getPath());
         assertThat(request.getBody().toString()).contains(stringRequestContent);
 
@@ -162,7 +164,7 @@ class ReactRequestServiceTest {
         for (int i = 0; i < 2; i++) {
             RecordedRequest recordedRequest = remoteMockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
-            assertThat(recordedRequest.getHeader("request-guid")).isEqualTo("test-guid");
+            assertThat(recordedRequest.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
             assertThat(recordedRequest.getRequestLine()).contains(url.getPath());
             assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
         }
@@ -222,7 +224,7 @@ class ReactRequestServiceTest {
         for (int i = 0; i < 2; i++) {
             RecordedRequest recordedRequest = remoteMockServer.takeRequest();
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
-            assertThat(recordedRequest.getHeader("request-guid")).isEqualTo("test-guid");
+            assertThat(recordedRequest.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
             assertThat(recordedRequest.getRequestLine()).contains(url.getPath());
             assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
         }
@@ -250,7 +252,6 @@ class ReactRequestServiceTest {
     @Test
     void sendRequest_Return500Error_AndCheckErrorResponseAndErrorHeader_AndCheckForHeaderAndStatusOfResponse_AndCheckLogs()
             throws MalformedURLException {
-        final String testHeaderKey = "request-error";
         final String testHeaderValue = "test-value";
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
@@ -264,7 +265,7 @@ class ReactRequestServiceTest {
                         request.getPath().startsWith("/test-path")) {
                     return new MockResponse()
                             .addHeader("Content-Type", MediaType.APPLICATION_JSON)
-                            .addHeader(testHeaderKey, testHeaderValue)
+                            .addHeader(HEADER_REQUEST_ERROR_KEY, testHeaderValue)
                             .setBody("")
                             .setResponseCode(500)
                             .setBodyDelay(100, TimeUnit.MILLISECONDS);

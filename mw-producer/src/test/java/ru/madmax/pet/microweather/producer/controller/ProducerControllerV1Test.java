@@ -22,6 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+
 
 @ActiveProfiles("test")
 @WebFluxTest(controllers = {ProducerControllerV1.class, ExceptionHandlerController.class})  //для webTestClient
@@ -65,7 +67,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-error", "Latitude is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Latitude is not set");
     }
 
     @Test
@@ -81,7 +83,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-error", "Longitude is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Longitude is not set");
     }
 
     @Test
@@ -97,7 +99,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-error", "Point is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Point is not set");
     }
 
     @Test
@@ -113,7 +115,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-error", "Source is not set");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Source is not set");
     }
 
     @Test
@@ -130,7 +132,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().valueEquals("request-error", "Wrong source");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Wrong source");
     }
 
     @Test
@@ -147,7 +149,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is4xxClientError()
-                .expectHeader().exists("request-error");
+                .expectHeader().exists(HEADER_REQUEST_ERROR_KEY);
     }
 
     @Test
@@ -166,7 +168,7 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals("request-error", "Test error");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Test error");
     }
 
     @Test
@@ -185,6 +187,6 @@ class ProducerControllerV1Test {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError()
-                .expectHeader().valueEquals("request-error", "Test error");
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Test error");
     }
 }
