@@ -91,7 +91,6 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     final WeatherListenerService weatherListenerService;
     final ConsumerBarrierReady consumerBarrierReady;
     ExecutorService service = Executors.newCachedThreadPool();
-    Random random = new Random();
 
     @BeforeEach
     void setUp() throws InterruptedException {
