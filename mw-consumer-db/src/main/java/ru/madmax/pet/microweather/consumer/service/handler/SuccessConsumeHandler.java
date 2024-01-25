@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import reactor.core.scheduler.Schedulers;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.consumer.exception.AppConsumerException;
@@ -26,7 +27,6 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
     private final ObjectMapper objectMapper;
     private final LogService logService;
 
-
     @Override
     public void accept(String key, MessageDTO messageDTO) {
         switch (messageDTO.getType()) {
@@ -38,9 +38,15 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
     private void consumeWeather(String key, MessageDTO messageDTO) {
         try {
             weatherRepository.save(
-                    weatherDomainConverter.convert(
-                            key, objectMapper.readValue(messageDTO.getMessage(), Weather.class))
-            ).doOnNext(wd -> logService.info(key, "weather data persists"));
+                            weatherDomainConverter.convert(
+                                    key, objectMapper.readValue(messageDTO.getMessage(), Weather.class))
+                    )
+                    .publishOn(Schedulers.boundedElastic())
+                    .doOnNext(wd -> successfulWeatherPersisting(key))
+                    .doOnError(error -> failedWeatherPersisting(key, error))
+                    .subscribe();
+
+
         } catch (JsonProcessingException e) {
             throw new AppConsumerException(e);
         }
@@ -49,6 +55,34 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
     private void consumeError(String key, MessageDTO messageDTO) {
         errorRepository.save(
                 errorDomainConverter.convert(key, messageDTO.getMessage())
-        ).doOnNext(wd -> logService.info(key, "error data persists"));
+        )
+                .publishOn(Schedulers.boundedElastic())
+                .doOnNext(wd -> successfulErrorPersisting(key))
+                .doOnError(error -> failedErrorPersisting(key, error))
+                .subscribe();
+    }
+
+    private void successfulWeatherPersisting(String key) {
+        logService.info(key, "Weather data persists");
+    }
+
+    private void failedWeatherPersisting (String key, Throwable error) {
+        logService.error(key,
+                "Error on persisting: " +
+                        (error.getCause() != null ?
+                                error.getCause().getMessage() :
+                                error.getMessage()));
+    }
+
+    private void successfulErrorPersisting(String key) {
+        logService.info(key, "Error data persists");
+    }
+
+    private void failedErrorPersisting(String key, Throwable error) {
+        logService.error(key,
+                "Error on persisting: " +
+                        (error.getCause() != null ?
+                                error.getCause().getMessage() :
+                                error.getMessage()));
     }
 }
