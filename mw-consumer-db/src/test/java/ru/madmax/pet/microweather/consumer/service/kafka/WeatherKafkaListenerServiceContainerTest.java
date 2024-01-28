@@ -92,6 +92,8 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     final ConsumerBarrierReady consumerBarrierReady;
     ExecutorService service = Executors.newCachedThreadPool();
 
+    Random random = new Random(12304L);
+
     @BeforeEach
     void setUp() throws InterruptedException {
         var waitingResult = consumerBarrierReady.await(30, TimeUnit.SECONDS);
@@ -180,7 +182,7 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
             //Thread.sleep(2000 + random.nextInt(300));
             var stringMessageDTOSendResult =
                     kafkaTemplate.send(topicName, key, message);
-            //Thread.sleep(2000 + random.nextInt(300));
+            Thread.sleep(500 + random.nextInt(300));
             return stringMessageDTOSendResult.get();
         };
     }
