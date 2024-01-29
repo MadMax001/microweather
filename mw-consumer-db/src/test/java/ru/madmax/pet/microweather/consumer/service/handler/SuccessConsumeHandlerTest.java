@@ -101,7 +101,7 @@ class SuccessConsumeHandlerTest {
         doAnswer(inv -> {
             handlerBarrier.countDown();
             return null;
-        }).when(successfulCompletionHook).accept(WEATHER_KEY);
+        }).when(successfulCompletionHook).accept(eq(WEATHER_KEY), anyString());
 
         successConsumeHandler.accept(WEATHER_KEY, message);
 
@@ -116,8 +116,7 @@ class SuccessConsumeHandlerTest {
         verify(weatherDomainConverter, times(1)).convert(eq(WEATHER_KEY), any(Weather.class));
         verify(errorRepository, never()).save(any(ErrorDomain.class));
 
-        verify(successfulCompletionHook, times(1)).accept(WEATHER_KEY);
-        verify(errorCompletionHook, never()).accept(anyString());
+        verify(successfulCompletionHook, times(1)).accept(eq(WEATHER_KEY), anyString());
         verify(errorCompletionHook, never()).accept(anyString(), any());
     }
 
@@ -132,7 +131,7 @@ class SuccessConsumeHandlerTest {
         doAnswer(inv -> {
             handlerBarrier.countDown();
             return null;
-        }).when(errorCompletionHook).accept(ERROR_KEY);
+        }).when(errorCompletionHook).accept(eq(ERROR_KEY), any());
 
         var  message = TestMessageDTOBuilder.aMessageDTO().withType(ERROR).build();
         successConsumeHandler.accept(ERROR_KEY, message);
@@ -148,9 +147,8 @@ class SuccessConsumeHandlerTest {
         verify(weatherDomainConverter, never()).convert(eq(WEATHER_KEY), any(Weather.class));
         verify(errorRepository, times(1)).save(any(ErrorDomain.class));
 
-        verify(successfulCompletionHook, never()).accept(anyString());
-        verify(errorCompletionHook, times(1)).accept(ERROR_KEY);
-        verify(errorCompletionHook, never()).accept(anyString(), any());
+        verify(successfulCompletionHook, never()).accept(anyString(), anyString());
+        verify(errorCompletionHook, times(1)).accept(eq(ERROR_KEY), any());
 
     }
 
@@ -163,8 +161,8 @@ class SuccessConsumeHandlerTest {
         var  message = TestMessageDTOBuilder.aMessageDTO().withType(WEATHER).build();
         assertThatThrownBy(() -> successConsumeHandler.accept(WEATHER_KEY, message)).isInstanceOf(AppConsumerException.class);
 
-        verify(successfulCompletionHook, never()).accept(anyString());
-        verify(errorCompletionHook, never()).accept(anyString());
+        verify(successfulCompletionHook, never()).accept(anyString(), anyString());
+        verify(errorCompletionHook, never()).accept(anyString(), any());
         verify(errorCompletionHook, never()).accept(eq(WEATHER_KEY), any(JsonParseException.class));
 
     }

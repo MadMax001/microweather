@@ -8,6 +8,7 @@ import reactor.core.scheduler.Schedulers;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.Weather;
 import ru.madmax.pet.microweather.consumer.exception.AppConsumerException;
+import ru.madmax.pet.microweather.consumer.exception.RemoteServiceException;
 import ru.madmax.pet.microweather.consumer.model.ErrorDomain;
 import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 import ru.madmax.pet.microweather.consumer.repository.ErrorRepository;
@@ -34,20 +35,20 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
     public void accept(String key, MessageDTO messageDTO) {
         consumerHook.accept(key, messageDTO);
         switch (messageDTO.getType()) {
-            case WEATHER -> consumeWeather(key, messageDTO);
-            case ERROR -> consumeError(key, messageDTO);
+            case WEATHER -> consumeWeather(key, messageDTO.getMessage());
+            case ERROR -> consumeError(key, messageDTO.getMessage());
         }
     }
 
-    private void consumeWeather(String key, MessageDTO messageDTO) {
+    private void consumeWeather(String key, String message) {
         try {
             weatherRepository.save(
                             weatherDomainConverter.convert(
-                                    key, objectMapper.readValue(messageDTO.getMessage(), Weather.class))
+                                    key, objectMapper.readValue(message, Weather.class))
                     )
                     .publishOn(Schedulers.boundedElastic())
-                    .doOnNext(wd -> successfulWeatherPersisting(key))
-                    .doOnError(error -> failedWeatherPersisting(key, error))
+                    .doOnNext(wd -> weatherDataPersisting(key, message))
+                    .doOnError(error -> failedOnPersisting(key, error))
                     .subscribe();
 
 
@@ -56,36 +57,27 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
         }
     }
 
-    private void consumeError(String key, MessageDTO messageDTO) {
+    private void consumeError(String key, String message) {
         errorRepository.save(
-                errorDomainConverter.convert(key, messageDTO.getMessage())
+                errorDomainConverter.convert(key, message)
         )
                 .publishOn(Schedulers.boundedElastic())
-                .doOnNext(wd -> successfulErrorPersisting(key))
-                .doOnError(error -> failedErrorPersisting(key, error))
+                .doOnNext(wd -> errorDataPersisting(key, new RemoteServiceException(message)))
+                .doOnError(error -> failedOnPersisting(key, error))
                 .subscribe();
     }
 
-    private void successfulWeatherPersisting(String key) {
+    private void weatherDataPersisting(String key, String message) {
         logService.info(key, "Weather data persists");
-        successfulCompletionHook.accept(key);
+        successfulCompletionHook.accept(key, message);
     }
 
-    private void failedWeatherPersisting (String key, Throwable error) {
-        logService.error(key,
-                "Error on persisting: " +
-                        (error.getCause() != null ?
-                                error.getCause().getMessage() :
-                                error.getMessage()));
-        errorCompletionHook.accept(key, error);
-    }
-
-    private void successfulErrorPersisting(String key) {
+    private void errorDataPersisting(String key, Throwable error) {
         logService.info(key, "Error data persists");
-        errorCompletionHook.accept(key);
+        errorCompletionHook.accept(key, error);
     }
 
-    private void failedErrorPersisting(String key, Throwable error) {
+    private void failedOnPersisting (String key, Throwable error) {
         logService.error(key,
                 "Error on persisting: " +
                         (error.getCause() != null ?
@@ -93,4 +85,5 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
                                 error.getMessage()));
         errorCompletionHook.accept(key, error);
     }
+
 }

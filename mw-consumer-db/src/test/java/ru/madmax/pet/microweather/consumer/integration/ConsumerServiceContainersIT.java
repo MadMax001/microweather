@@ -104,7 +104,7 @@ class ConsumerServiceContainersIT extends AbstractContainersIntegrationTest {
         doAnswer(inv -> {
             processBarrier.countDown();
             return null;
-        }).when(successfulCompletionHook).accept(key);
+        }).when(successfulCompletionHook).accept(eq(key), anyString());
 
 
         var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
@@ -144,7 +144,7 @@ class ConsumerServiceContainersIT extends AbstractContainersIntegrationTest {
         doAnswer(inv -> {
             processBarrier.countDown();
             return null;
-        }).when(errorCompletionHook).accept(key);
+        }).when(errorCompletionHook).accept(eq(key), any());
 
         var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
         service.submit(task).get();
@@ -238,7 +238,7 @@ class ConsumerServiceContainersIT extends AbstractContainersIntegrationTest {
         doAnswer(inv -> {
             processBarrier.countDown();
             return null;
-        }).when(successfulCompletionHook).accept(anyString());
+        }).when(successfulCompletionHook).accept(anyString(), anyString());
 
         List<Callable<SendResult<String, MessageDTO>>> taskList = new ArrayList<>();
         for(int i = 0; i < concurrency; i++) {

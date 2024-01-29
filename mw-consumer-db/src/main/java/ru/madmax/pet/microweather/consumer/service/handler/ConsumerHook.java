@@ -6,5 +6,6 @@ import ru.madmax.pet.microweather.common.model.MessageDTO;
 @Component
 public class ConsumerHook implements OperationHook<MessageDTO> {
     @Override
-    public void accept(String s, MessageDTO messageDTO) {}
+    public void accept(String key, MessageDTO messageDTO) {}
+
 }
