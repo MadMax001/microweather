@@ -22,9 +22,8 @@ import ru.madmax.pet.microweather.consumer.service.LogService;
 import ru.madmax.pet.microweather.consumer.service.converter.model.ModelDomainConverter;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.function.BiConsumer;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -52,6 +51,14 @@ class SuccessConsumeHandlerTest {
     ModelDomainConverter<String, String, ErrorDomain> errorDomainConverter;
 
     @Mock
+    OperationHook<MessageDTO> consumerHook;
+    @Mock
+    OperationHook<String> successfulCompletionHook;
+    @Mock
+    OperationHook<Throwable> errorCompletionHook;
+
+
+    @Mock
     LogService logService;
 
     @Mock
@@ -71,7 +78,10 @@ class SuccessConsumeHandlerTest {
                 weatherDomainConverter,
                 errorDomainConverter,
                 objectMapper,
-                logService
+                logService,
+                consumerHook,
+                successfulCompletionHook,
+                errorCompletionHook
         );
     }
 
@@ -85,24 +95,32 @@ class SuccessConsumeHandlerTest {
         var weather = TestWeatherBuilder.aWeather().build();
         when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(weather);
 
-        var  messsage = TestMessageDTOBuilder.aMessageDTO()
+        var  message = TestMessageDTOBuilder.aMessageDTO()
                 .withType(WEATHER)
                 .withMessage("{\"now\":1234567890,\"fact\":{\"temp\":10.0,\"windSpeed\":5.3},\"info\":{\"url\":\"www.test.ru\"}}")
                 .build();
-        successConsumeHandler.accept(WEATHER_KEY, messsage);
+        CountDownLatch handlerBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            handlerBarrier.countDown();
+            return null;
+        }).when(successfulCompletionHook).accept(WEATHER_KEY);
+
+        successConsumeHandler.accept(WEATHER_KEY, message);
 
         verify(weatherRepository, times(1)).save(any(WeatherDomain.class));
         verify(errorDomainConverter, never()).convert(anyString(), anyString());
+        verify(consumerHook, times(1)).accept(WEATHER_KEY, message);
 
-        executorService.submit(() -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            verify(weatherDomainConverter, times(1)).convert(eq(WEATHER_KEY), any(Weather.class));
-            verify(errorRepository, never()).save(any(ErrorDomain.class));
-        }).get();
+
+        var handleSuccess = handlerBarrier.await(1, TimeUnit.SECONDS);
+        if (!handleSuccess)
+            throw new AppConsumerException(new RuntimeException("Can't handle result"));
+        verify(weatherDomainConverter, times(1)).convert(eq(WEATHER_KEY), any(Weather.class));
+        verify(errorRepository, never()).save(any(ErrorDomain.class));
+
+        verify(successfulCompletionHook, times(1)).accept(WEATHER_KEY);
+        verify(errorCompletionHook, never()).accept(anyString());
+        verify(errorCompletionHook, never()).accept(anyString(), any());
     }
 
     @Test
@@ -112,22 +130,29 @@ class SuccessConsumeHandlerTest {
         when(errorRepository.save(errorDomain)).thenAnswer(invocation ->
                 Mono.just(errorDomain).delayElement(Duration.ofMillis(50)));
 
+        CountDownLatch handlerBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            handlerBarrier.countDown();
+            return null;
+        }).when(errorCompletionHook).accept(ERROR_KEY);
 
-        var  messsage = TestMessageDTOBuilder.aMessageDTO().withType(ERROR).build();
-        successConsumeHandler.accept(ERROR_KEY, messsage);
+        var  message = TestMessageDTOBuilder.aMessageDTO().withType(ERROR).build();
+        successConsumeHandler.accept(ERROR_KEY, message);
 
         verify(weatherRepository, never()).save(any(WeatherDomain.class));
         verify(errorDomainConverter, times(1)).convert(anyString(), anyString());
+        verify(consumerHook, times(1)).accept(ERROR_KEY, message);
 
-        executorService.submit(() -> {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            verify(weatherDomainConverter, never()).convert(eq(WEATHER_KEY), any(Weather.class));
-            verify(errorRepository, times(1)).save(any(ErrorDomain.class));
-        }).get();
+        var handleSuccess = handlerBarrier.await(1, TimeUnit.SECONDS);
+        if (!handleSuccess)
+            throw new AppConsumerException(new RuntimeException("Can't handle result"));
+
+        verify(weatherDomainConverter, never()).convert(eq(WEATHER_KEY), any(Weather.class));
+        verify(errorRepository, times(1)).save(any(ErrorDomain.class));
+
+        verify(successfulCompletionHook, never()).accept(anyString());
+        verify(errorCompletionHook, times(1)).accept(ERROR_KEY);
+        verify(errorCompletionHook, never()).accept(anyString(), any());
 
     }
 
@@ -135,9 +160,14 @@ class SuccessConsumeHandlerTest {
     void handleWeatherType_WithWrongWeatherStructure_ThrowsAppConsumerException_AndCheckNoLog() throws JsonProcessingException {
         Throwable error = new JsonParseException("test-error");
         doThrow(error).when(objectMapper).readValue(anyString(), any(Class.class));
-        var  messsage = TestMessageDTOBuilder.aMessageDTO().withType(WEATHER).build();
-        assertThatThrownBy(() -> successConsumeHandler.accept(WEATHER_KEY, messsage)).isInstanceOf(AppConsumerException.class);
 
+
+        var  message = TestMessageDTOBuilder.aMessageDTO().withType(WEATHER).build();
+        assertThatThrownBy(() -> successConsumeHandler.accept(WEATHER_KEY, message)).isInstanceOf(AppConsumerException.class);
+
+        verify(successfulCompletionHook, never()).accept(anyString());
+        verify(errorCompletionHook, never()).accept(anyString());
+        verify(errorCompletionHook, never()).accept(eq(WEATHER_KEY), any(JsonParseException.class));
 
     }
 }

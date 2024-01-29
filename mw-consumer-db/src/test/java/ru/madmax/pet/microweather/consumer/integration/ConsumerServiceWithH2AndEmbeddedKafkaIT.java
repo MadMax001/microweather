@@ -29,10 +29,10 @@ import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 import ru.madmax.pet.microweather.consumer.repository.ErrorRepository;
 import ru.madmax.pet.microweather.consumer.repository.WeatherRepository;
 import ru.madmax.pet.microweather.consumer.service.LogService;
+import ru.madmax.pet.microweather.consumer.service.handler.OperationHook;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -68,7 +68,6 @@ import static ru.madmax.pet.microweather.common.model.MessageType.ERROR;
 )
 @ActiveProfiles("test")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Tag("EmbeddedKafka+H2")
 class ConsumerServiceWithH2AndEmbeddedKafkaIT {
     final ObjectMapper objectMapper;
@@ -83,7 +82,11 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
     @MockBean
     LogService logService;
 
-    Random random = new Random();
+    @MockBean(name="successfulCompletionHook")
+    OperationHook<String> successfulCompletionHook;
+    @MockBean(name="errorCompletionHook")
+    OperationHook<Throwable> errorCompletionHook;
+
     ExecutorService service = Executors.newCachedThreadPool();
 
     @Captor
@@ -96,21 +99,11 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
             throw new AppConsumerException(new RuntimeException("Kafka is not ready"));
     }
 
-    private Callable<SendResult<String, MessageDTO>> createKafkaSenderTask
-            (String topicName, String key, MessageDTO message) {
-        return () -> {
-            var stringMessageDTOSendResult =
-                    kafkaTemplate.send(topicName, key, message);
-            Thread.sleep(1000 + random.nextInt(300));
-            return stringMessageDTOSendResult.get();
-        };
-    }
 
     @Test
     void receiveWeatherMessage_SaveToDB_ThenReadFromDB_AndCheckWeather_AndCountLogs()
             throws InterruptedException, JsonProcessingException, ExecutionException {
         var weather = TestWeatherBuilder.aWeather().build();
-        //var key = "integration-test-consumer-1___________________________________________________________________________________________________________________________________________";
         var key = "integration-test-consumer-1";
 
         var messageDTO = TestMessageDTOBuilder.aMessageDTO()
@@ -120,7 +113,14 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        var task = createKafkaSenderTask(testTopic, key, messageDTO);
+        CountDownLatch processBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            processBarrier.countDown();
+            return null;
+        }).when(successfulCompletionHook).accept(key);
+
+
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
         service.submit(task).get();
         Mono<WeatherDomain> weatherDBMono = weatherRepository.findById(key);
         StepVerifier.create(weatherDBMono)
@@ -153,7 +153,13 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        var task = createKafkaSenderTask(testTopic, key, messageDTO);
+        CountDownLatch processBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            processBarrier.countDown();
+            return null;
+        }).when(errorCompletionHook).accept(key);
+
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
         service.submit(task).get();
         Mono<ErrorDomain> errorDBMono = errorRepository.findById(key);
         StepVerifier.create(errorDBMono)
@@ -173,26 +179,33 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
     @Test
     void receiveWeatherMessage_WithVeryLongKeyValue_TryToSaveToDB_ThenCantReadFromDB_AndCountLogs()
             throws InterruptedException, JsonProcessingException, ExecutionException {
-            var weather = TestWeatherBuilder.aWeather().build();
-            var key = "integration-test-consumer-3___________________________________________________________________________________________________________________________________________";
+        var weather = TestWeatherBuilder.aWeather().build();
+        var key = "integration-test-consumer-3___________________________________________________________________________________________________________________________________________";
 
-            var messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                    .withMessage(objectMapper.writeValueAsString(weather))
-                    .build();
+        var messageDTO = TestMessageDTOBuilder.aMessageDTO()
+                .withMessage(objectMapper.writeValueAsString(weather))
+                .build();
 
-            doNothing().when(logService).info(anyString(), anyString());
-            doNothing().when(logService).error(anyString(), anyString());
+        doNothing().when(logService).info(anyString(), anyString());
+        doNothing().when(logService).error(anyString(), anyString());
 
-            var task = createKafkaSenderTask(testTopic, key, messageDTO);
-            service.submit(task).get();
-            Mono<WeatherDomain> weatherDBMono = weatherRepository.findById(key);
-            StepVerifier.create(weatherDBMono)
-                    .expectComplete()
-                    .verify();
+        CountDownLatch processBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            processBarrier.countDown();
+            return null;
+        }).when(errorCompletionHook).accept(eq(key), any());
 
-            verify(logService, times(1)).info(anyString(), stringCaptor.capture());
-            verify(logService, times(1)).error(anyString(), stringCaptor.capture());
-            stringCaptor.getAllValues().forEach(System.out::println);
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
+        service.submit(task).get();
+
+        Mono<WeatherDomain> weatherDBMono = weatherRepository.findById(key);
+        StepVerifier.create(weatherDBMono)
+                .expectComplete()
+                .verify();
+
+        verify(logService, times(1)).info(anyString(), stringCaptor.capture());
+        verify(logService, times(1)).error(anyString(), stringCaptor.capture());
+        stringCaptor.getAllValues().forEach(System.out::println);
     }
 
     @Test
@@ -208,8 +221,15 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        var task = createKafkaSenderTask(testTopic, key, messageDTO);
+        CountDownLatch processBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            processBarrier.countDown();
+            return null;
+        }).when(errorCompletionHook).accept(eq(key), any());
+
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, processBarrier);
         service.submit(task).get();
+
         Mono<ErrorDomain> errorDBMono = errorRepository.findById(key);
         StepVerifier.create(errorDBMono)
                 .expectComplete()
@@ -225,7 +245,13 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
         var keyPrefix = "concurrency-integration-";
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
+        CountDownLatch senderBarrier = new CountDownLatch(concurrency);
 
+        CountDownLatch processBarrier = new CountDownLatch(10);
+        doAnswer(inv -> {
+            processBarrier.countDown();
+            return null;
+        }).when(successfulCompletionHook).accept(anyString());
 
         List<Callable<SendResult<String, MessageDTO>>> taskList = new ArrayList<>();
         for(int i = 0; i < concurrency; i++) {
@@ -237,7 +263,7 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
                     .withMessage(objectMapper.writeValueAsString(weather))
                     .build();
 
-            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO));
+            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO, senderBarrier));
         }
         List<Future<SendResult<String, MessageDTO>>> futures = service.invokeAll(taskList);
         assertThat(futures).hasSize(concurrency);
@@ -257,5 +283,16 @@ class ConsumerServiceWithH2AndEmbeddedKafkaIT {
         stringCaptor.getAllValues().forEach(System.out::println);
     }
 
+    private Callable<SendResult<String, MessageDTO>> createKafkaSenderTask
+            (String topicName, String key, MessageDTO message, CountDownLatch senderBarrier) {
+        return () -> {
+            var stringMessageDTOSendResult =
+                    kafkaTemplate.send(topicName, key, message);
+            var senderSuccess = senderBarrier.await(2, TimeUnit.SECONDS);
+            if (!senderSuccess)
+                throw new RuntimeException("Can't transfer message");
+            return stringMessageDTOSendResult.get();
+        };
+    }
 
 }

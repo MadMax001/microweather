@@ -92,13 +92,13 @@ class WeatherKafkaListenerServiceTest {
     final WeatherListenerService weatherListenerService;
     final ConsumerBarrierReady consumerBarrierReady;
     ExecutorService service = Executors.newCachedThreadPool();
-    Random random = new Random();
 
     @BeforeEach
     void setUp() throws InterruptedException {
         var waitingResult = consumerBarrierReady.await(30, TimeUnit.SECONDS);
         if (!waitingResult)
             throw new AppConsumerException(new RuntimeException("Kafka is not ready"));
+
     }
 
     @Test
@@ -113,8 +113,13 @@ class WeatherKafkaListenerServiceTest {
                 .build();
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
-        doNothing().when(successConsumeHandler).accept(anyString(), any(MessageDTO.class));
-        var task = createKafkaSenderTask(testTopic, key, messageDTO);
+        CountDownLatch senderBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
+
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, senderBarrier);
         service.submit(task).get();
 
 
@@ -137,8 +142,17 @@ class WeatherKafkaListenerServiceTest {
         var messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withMessage(objectMapper.writeValueAsString(weather))
                 .build();
-        var task = createKafkaSenderTask("wrong-topic", key, messageDTO);
-        service.submit(task).get();
+        CountDownLatch senderBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
+
+
+        var task = createKafkaSenderTask("wrong-topic", key, messageDTO, senderBarrier);
+        try {
+            service.submit(task).get();
+        } catch (ExecutionException e) {}
 
         verify(logService, never()).info(anyString(), anyString());
         verify(logService, never()).error(anyString(), anyString());
@@ -152,7 +166,11 @@ class WeatherKafkaListenerServiceTest {
         var keyPrefix = "concurrency-test-consumer";
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
-        doNothing().when(successConsumeHandler).accept(anyString(), any(MessageDTO.class));
+        CountDownLatch senderBarrier = new CountDownLatch(concurrency);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
 
 
         List<Callable<SendResult<String, MessageDTO>>> taskList = new ArrayList<>();
@@ -165,7 +183,7 @@ class WeatherKafkaListenerServiceTest {
                     .withMessage(objectMapper.writeValueAsString(weather))
                     .build();
 
-            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO));
+            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO, senderBarrier));
         }
         List<Future<SendResult<String, MessageDTO>>> futures = service.invokeAll(taskList);
         assertThat(futures).hasSize(concurrency);
@@ -182,14 +200,17 @@ class WeatherKafkaListenerServiceTest {
     }
 
     private Callable<SendResult<String, MessageDTO>> createKafkaSenderTask
-            (String topicName, String key, MessageDTO message) {
+            (String topicName, String key, MessageDTO message, CountDownLatch senderBarrier) {
         return () -> {
-            //Thread.sleep(10000 + random.nextInt(300));
+
             var stringMessageDTOSendResult =
                     kafkaTemplate.send(topicName, key, message);
-            Thread.sleep(1000 + random.nextInt(300));
+            var senderSuccess = senderBarrier.await(2, TimeUnit.SECONDS);
+            if (!senderSuccess)
+                throw new RuntimeException("Can't transfer message");
             return stringMessageDTOSendResult.get();
         };
     }
+
 
 }

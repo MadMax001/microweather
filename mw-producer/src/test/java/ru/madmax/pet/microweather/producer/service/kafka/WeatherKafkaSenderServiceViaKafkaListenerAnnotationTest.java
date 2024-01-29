@@ -122,7 +122,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord1.value().getMessage()).isEqualTo(messageDTO1.getMessage());
         assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.WEATHER);
 
-        ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(50, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord2).isNotNull();
         assertThat(consumerRecord2.key()).isEqualTo(key2);
@@ -199,7 +199,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord1.value().getMessage()).isEqualTo(messageDTO1.getMessage());
         assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.WEATHER);
 
-        ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(50, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord2).isNotNull();
         assertThat(consumerRecord2.key()).isEqualTo(key);

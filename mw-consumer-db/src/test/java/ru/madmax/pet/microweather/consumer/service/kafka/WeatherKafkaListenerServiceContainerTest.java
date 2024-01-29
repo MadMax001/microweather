@@ -36,7 +36,6 @@ import ru.madmax.pet.microweather.consumer.service.handler.SuccessConsumeHandler
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +69,6 @@ import static org.mockito.Mockito.times;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Tag("Containers")
 class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegrationTest {
-
     @Value("${spring.kafka.topic.name}")
     String testTopic;
 
@@ -92,18 +90,18 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     final ConsumerBarrierReady consumerBarrierReady;
     ExecutorService service = Executors.newCachedThreadPool();
 
-    Random random = new Random(12304L);
-
     @BeforeEach
     void setUp() throws InterruptedException {
         var waitingResult = consumerBarrierReady.await(30, TimeUnit.SECONDS);
         if (!waitingResult)
             throw new AppConsumerException(new RuntimeException("Kafka is not ready"));
+
     }
 
     @Test
     void sendTestMessage_andConsumeIt_AndCheckSuccessConsumeHandlerParameters_AndCountLogs()
             throws JsonProcessingException, ExecutionException, InterruptedException {
+
         var weather = TestWeatherBuilder.aWeather().build();
         var key = "test-consumer-1";
 
@@ -112,28 +110,46 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
                 .build();
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
-        doNothing().when(successConsumeHandler).accept(anyString(), any(MessageDTO.class));
-        var task = createKafkaSenderTask(testTopic, key, messageDTO);
+        CountDownLatch senderBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
+
+        var task = createKafkaSenderTask(testTopic, key, messageDTO, senderBarrier);
         service.submit(task).get();
-        verify(logService, times(1)).info(anyString(), anyString());
-        verify(logService, never()).error(anyString(), anyString());
+
 
         verify(successConsumeHandler, times(1)).accept(keyCaptor.capture(), messageCaptor.capture());
         assertThat(keyCaptor.getValue()).isEqualTo(key);
         assertThat(messageCaptor.getValue()).isEqualTo(messageDTO);
+
+        verify(logService, times(1)).info(anyString(), anyString());
+        verify(logService, never()).error(anyString(), anyString());
+
     }
 
     @Test
     void sendTestMessageToWrongTopic_AndCheckEmptyConsumer_AndCountLogs()
             throws ExecutionException, InterruptedException, JsonProcessingException {
+
         var weather = TestWeatherBuilder.aWeather().build();
         var key = "test-consumer-2";
 
         var messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withMessage(objectMapper.writeValueAsString(weather))
                 .build();
-        var task = createKafkaSenderTask("wrong-topic", key, messageDTO);
-        service.submit(task).get();
+        CountDownLatch senderBarrier = new CountDownLatch(1);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
+
+
+        var task = createKafkaSenderTask("wrong-topic", key, messageDTO, senderBarrier);
+        try {
+            service.submit(task).get();
+        } catch (ExecutionException e) {}
 
         verify(logService, never()).info(anyString(), anyString());
         verify(logService, never()).error(anyString(), anyString());
@@ -147,7 +163,11 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
         var keyPrefix = "concurrency-test-consumer";
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
-        doNothing().when(successConsumeHandler).accept(anyString(), any(MessageDTO.class));
+        CountDownLatch senderBarrier = new CountDownLatch(concurrency);
+        doAnswer(inv -> {
+            senderBarrier.countDown();
+            return null;
+        }).when(successConsumeHandler).accept(anyString(), any());
 
 
         List<Callable<SendResult<String, MessageDTO>>> taskList = new ArrayList<>();
@@ -160,7 +180,7 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
                     .withMessage(objectMapper.writeValueAsString(weather))
                     .build();
 
-            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO));
+            taskList.add(createKafkaSenderTask(testTopic, keyPrefix + i, messageDTO, senderBarrier));
         }
         List<Future<SendResult<String, MessageDTO>>> futures = service.invokeAll(taskList);
         assertThat(futures).hasSize(concurrency);
@@ -177,13 +197,16 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
     }
 
     private Callable<SendResult<String, MessageDTO>> createKafkaSenderTask
-            (String topicName, String key, MessageDTO message) {
+            (String topicName, String key, MessageDTO message, CountDownLatch senderBarrier) {
         return () -> {
-            //Thread.sleep(2000 + random.nextInt(300));
+
             var stringMessageDTOSendResult =
                     kafkaTemplate.send(topicName, key, message);
-            Thread.sleep(500 + random.nextInt(300));
+            var senderSuccess = senderBarrier.await(2, TimeUnit.SECONDS);
+            if (!senderSuccess)
+                throw new RuntimeException("Can't transfer message");
             return stringMessageDTOSendResult.get();
         };
     }
+
 }

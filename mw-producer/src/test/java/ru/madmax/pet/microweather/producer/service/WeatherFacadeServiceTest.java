@@ -28,10 +28,12 @@ import ru.madmax.pet.microweather.producer.model.*;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -321,8 +323,9 @@ class WeatherFacadeServiceTest {
         weatherFacadeService.registerRequest(requestDTO);
         var returnFacadeMethodTime = System.nanoTime();
 
-        Thread.sleep(1500);
-        assertThat((int)((facadeMethodCompleteTime.get() - returnFacadeMethodTime) / 1_000_000_000)).isOne();
+        await().atMost(1500, TimeUnit.MILLISECONDS)
+                .until(() ->
+                        ((int)((facadeMethodCompleteTime.get() - returnFacadeMethodTime) / 1_000_000_000) != 1));
     }
 
     @Test

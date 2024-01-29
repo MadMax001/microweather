@@ -26,9 +26,13 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
     private final ModelDomainConverter<String, String, ErrorDomain> errorDomainConverter;
     private final ObjectMapper objectMapper;
     private final LogService logService;
+    private final OperationHook<MessageDTO> consumerHook;
+    private final OperationHook<String> successfulCompletionHook;
+    private final OperationHook<Throwable> errorCompletionHook;
 
     @Override
     public void accept(String key, MessageDTO messageDTO) {
+        consumerHook.accept(key, messageDTO);
         switch (messageDTO.getType()) {
             case WEATHER -> consumeWeather(key, messageDTO);
             case ERROR -> consumeError(key, messageDTO);
@@ -64,6 +68,7 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
 
     private void successfulWeatherPersisting(String key) {
         logService.info(key, "Weather data persists");
+        successfulCompletionHook.accept(key);
     }
 
     private void failedWeatherPersisting (String key, Throwable error) {
@@ -72,10 +77,12 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
                         (error.getCause() != null ?
                                 error.getCause().getMessage() :
                                 error.getMessage()));
+        errorCompletionHook.accept(key, error);
     }
 
     private void successfulErrorPersisting(String key) {
         logService.info(key, "Error data persists");
+        errorCompletionHook.accept(key);
     }
 
     private void failedErrorPersisting(String key, Throwable error) {
@@ -84,5 +91,6 @@ public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
                         (error.getCause() != null ?
                                 error.getCause().getMessage() :
                                 error.getMessage()));
+        errorCompletionHook.accept(key, error);
     }
 }
