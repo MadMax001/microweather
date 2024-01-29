@@ -297,8 +297,7 @@ class WeatherFacadeServiceTest {
     }
 
     @Test
-    void requestService_WithDelayInResponseFromRemoteServer_AndCheckThatCompleteOperationIsAfterKeyGeneration()
-            throws InterruptedException {
+    void requestService_WithDelayInResponseFromRemoteServer_AndCheckThatCompleteOperationIsAfterKeyGeneration() {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 

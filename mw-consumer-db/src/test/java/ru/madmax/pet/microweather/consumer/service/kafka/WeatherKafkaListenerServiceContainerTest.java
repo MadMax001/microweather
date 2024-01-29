@@ -131,7 +131,7 @@ class WeatherKafkaListenerServiceContainerTest extends AbstractContainersIntegra
 
     @Test
     void sendTestMessageToWrongTopic_AndCheckEmptyConsumer_AndCountLogs()
-            throws ExecutionException, InterruptedException, JsonProcessingException {
+            throws InterruptedException, JsonProcessingException {
 
         var weather = TestWeatherBuilder.aWeather().build();
         var key = "test-consumer-2";
