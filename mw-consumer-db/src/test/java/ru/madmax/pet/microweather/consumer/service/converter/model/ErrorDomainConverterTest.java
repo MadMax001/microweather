@@ -7,8 +7,6 @@ import ru.madmax.pet.microweather.consumer.model.TestErrorDomainBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Tag("Containers")
-@Tag("EmbeddedKafka+H2")
 class ErrorDomainConverterTest {
     ErrorDomainConverter errorDomainConverter;
 

@@ -32,8 +32,6 @@ import static ru.madmax.pet.microweather.common.model.MessageType.ERROR;
 import static ru.madmax.pet.microweather.common.model.MessageType.WEATHER;
 
 @ExtendWith({MockitoExtension.class})
-@Tag("Containers")
-@Tag("EmbeddedKafka+H2")
 class ConsumeHandlerTest {
     ConsumeHandler consumeHandler;
 
