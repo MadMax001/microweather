@@ -7,13 +7,13 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
-import ru.madmax.pet.microweather.consumer.service.handler.SuccessConsumeHandler;
+import ru.madmax.pet.microweather.consumer.service.handler.ConsumeHandler;
 
 
 @Service
 @RequiredArgsConstructor
 public class WeatherKafkaListenerService implements WeatherListenerService {
-    private final SuccessConsumeHandler successConsumeHandler;
+    private final ConsumeHandler consumeHandler;
     private final LogService logService;
 
     @Override
@@ -30,6 +30,6 @@ public class WeatherKafkaListenerService implements WeatherListenerService {
                 message,
                 partition,
                 offset));
-        successConsumeHandler.accept(key, message);
+        consumeHandler.accept(key, message);
     }
 }

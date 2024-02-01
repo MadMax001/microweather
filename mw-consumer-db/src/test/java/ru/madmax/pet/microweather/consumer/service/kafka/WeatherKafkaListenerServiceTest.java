@@ -33,7 +33,7 @@ import ru.madmax.pet.microweather.consumer.service.LogService;
 import ru.madmax.pet.microweather.consumer.service.Slf4JLogService;
 import ru.madmax.pet.microweather.consumer.service.WeatherKafkaListenerService;
 import ru.madmax.pet.microweather.consumer.service.WeatherListenerService;
-import ru.madmax.pet.microweather.consumer.service.handler.SuccessConsumeHandler;
+import ru.madmax.pet.microweather.consumer.service.handler.ConsumeHandler;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -61,7 +61,7 @@ import static org.mockito.Mockito.*;
         KafkaConfiguration.class,
         Slf4JLogService.class,
         WeatherKafkaProducerTestConfiguration.class,
-        SuccessConsumeHandler.class,
+        ConsumeHandler.class,
         WeatherKafkaListenerService.class
 })
 @AutoConfigureWebTestClient
@@ -79,7 +79,7 @@ class WeatherKafkaListenerServiceTest {
     LogService logService;
 
     @MockBean
-    SuccessConsumeHandler successConsumeHandler;
+    ConsumeHandler consumeHandler;
 
     @Captor
     ArgumentCaptor<String> keyCaptor;
@@ -117,13 +117,13 @@ class WeatherKafkaListenerServiceTest {
         doAnswer(inv -> {
             senderBarrier.countDown();
             return null;
-        }).when(successConsumeHandler).accept(anyString(), any());
+        }).when(consumeHandler).accept(anyString(), any());
 
         var task = createKafkaSenderTask(testTopic, key, messageDTO, senderBarrier);
         service.submit(task).get();
 
 
-        verify(successConsumeHandler, times(1)).accept(keyCaptor.capture(), messageCaptor.capture());
+        verify(consumeHandler, times(1)).accept(keyCaptor.capture(), messageCaptor.capture());
         assertThat(keyCaptor.getValue()).isEqualTo(key);
         assertThat(messageCaptor.getValue()).isEqualTo(messageDTO);
 
@@ -146,7 +146,7 @@ class WeatherKafkaListenerServiceTest {
         doAnswer(inv -> {
             senderBarrier.countDown();
             return null;
-        }).when(successConsumeHandler).accept(anyString(), any());
+        }).when(consumeHandler).accept(anyString(), any());
 
 
         var task = createKafkaSenderTask("wrong-topic", key, messageDTO, senderBarrier);
@@ -156,7 +156,7 @@ class WeatherKafkaListenerServiceTest {
 
         verify(logService, never()).info(anyString(), anyString());
         verify(logService, never()).error(anyString(), anyString());
-        verify(successConsumeHandler, never()).accept(keyCaptor.capture(), messageCaptor.capture());
+        verify(consumeHandler, never()).accept(keyCaptor.capture(), messageCaptor.capture());
     }
 
     @Test
@@ -170,7 +170,7 @@ class WeatherKafkaListenerServiceTest {
         doAnswer(inv -> {
             senderBarrier.countDown();
             return null;
-        }).when(successConsumeHandler).accept(anyString(), any());
+        }).when(consumeHandler).accept(anyString(), any());
 
 
         List<Callable<SendResult<String, MessageDTO>>> taskList = new ArrayList<>();
@@ -191,7 +191,7 @@ class WeatherKafkaListenerServiceTest {
         verify(logService, times(concurrency)).info(anyString(), anyString());
         verify(logService, never()).error(anyString(), anyString());
 
-        verify(successConsumeHandler, times(concurrency)).accept(keyCaptor.capture(), messageCaptor.capture());
+        verify(consumeHandler, times(concurrency)).accept(keyCaptor.capture(), messageCaptor.capture());
 
         assertThat(new HashSet<>(keyCaptor.getAllValues())).hasSize(concurrency);
         assertThat(new HashSet<>(messageCaptor.getAllValues())).hasSize(concurrency);

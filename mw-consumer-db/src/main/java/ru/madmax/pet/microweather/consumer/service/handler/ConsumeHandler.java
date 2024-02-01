@@ -20,16 +20,16 @@ import java.util.function.BiConsumer;
 
 @Component
 @RequiredArgsConstructor
-public class SuccessConsumeHandler implements BiConsumer<String, MessageDTO> {
+public class ConsumeHandler implements BiConsumer<String, MessageDTO> {
     private final WeatherRepository weatherRepository;
     private final ErrorRepository errorRepository;
     private final ModelDomainConverter<String, Weather, WeatherDomain> weatherDomainConverter;
     private final ModelDomainConverter<String, String, ErrorDomain> errorDomainConverter;
     private final ObjectMapper objectMapper;
     private final LogService logService;
-    private final OperationHook<MessageDTO> consumerHook;
-    private final OperationHook<String> successfulCompletionHook;
-    private final OperationHook<Throwable> errorCompletionHook;
+    private final Hook<MessageDTO> consumerHook;
+    private final Hook<String> successfulCompletionHook;
+    private final Hook<Throwable> errorCompletionHook;
 
     @Override
     public void accept(String key, MessageDTO messageDTO) {

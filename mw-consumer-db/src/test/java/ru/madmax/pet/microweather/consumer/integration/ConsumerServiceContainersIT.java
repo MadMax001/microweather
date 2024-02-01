@@ -28,7 +28,7 @@ import ru.madmax.pet.microweather.consumer.model.WeatherDomain;
 import ru.madmax.pet.microweather.consumer.repository.ErrorRepository;
 import ru.madmax.pet.microweather.consumer.repository.WeatherRepository;
 import ru.madmax.pet.microweather.consumer.service.LogService;
-import ru.madmax.pet.microweather.consumer.service.handler.OperationHook;
+import ru.madmax.pet.microweather.consumer.service.handler.Hook;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,9 +70,9 @@ class ConsumerServiceContainersIT extends AbstractContainersIntegrationTest {
     LogService logService;
 
     @MockBean(name="successfulCompletionHook")
-    OperationHook<String> successfulCompletionHook;
+    Hook<String> successfulCompletionHook;
     @MockBean(name="errorCompletionHook")
-    OperationHook<Throwable> errorCompletionHook;
+    Hook<Throwable> errorCompletionHook;
 
     ExecutorService service = Executors.newCachedThreadPool();
 

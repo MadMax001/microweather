@@ -34,8 +34,8 @@ import static ru.madmax.pet.microweather.common.model.MessageType.WEATHER;
 @ExtendWith({MockitoExtension.class})
 @Tag("Containers")
 @Tag("EmbeddedKafka+H2")
-class SuccessConsumeHandlerTest {
-    SuccessConsumeHandler successConsumeHandler;
+class ConsumeHandlerTest {
+    ConsumeHandler consumeHandler;
 
     @Mock
     WeatherRepository weatherRepository;
@@ -50,11 +50,11 @@ class SuccessConsumeHandlerTest {
     ModelDomainConverter<String, String, ErrorDomain> errorDomainConverter;
 
     @Mock
-    OperationHook<MessageDTO> consumerHook;
+    Hook<MessageDTO> consumerHook;
     @Mock
-    OperationHook<String> successfulCompletionHook;
+    Hook<String> successfulCompletionHook;
     @Mock
-    OperationHook<Throwable> errorCompletionHook;
+    Hook<Throwable> errorCompletionHook;
 
 
     @Mock
@@ -69,7 +69,7 @@ class SuccessConsumeHandlerTest {
 
     @BeforeEach
     void setUp() {
-        successConsumeHandler = new SuccessConsumeHandler(
+        consumeHandler = new ConsumeHandler(
                 weatherRepository,
                 errorRepository,
                 weatherDomainConverter,
@@ -103,7 +103,7 @@ class SuccessConsumeHandlerTest {
             return null;
         }).when(successfulCompletionHook).accept(eq(WEATHER_KEY), anyString());
 
-        successConsumeHandler.accept(WEATHER_KEY, message);
+        consumeHandler.accept(WEATHER_KEY, message);
 
         verify(weatherRepository, times(1)).save(any(WeatherDomain.class));
         verify(errorDomainConverter, never()).convert(anyString(), anyString());
@@ -134,7 +134,7 @@ class SuccessConsumeHandlerTest {
         }).when(errorCompletionHook).accept(eq(ERROR_KEY), any());
 
         var  message = TestMessageDTOBuilder.aMessageDTO().withType(ERROR).build();
-        successConsumeHandler.accept(ERROR_KEY, message);
+        consumeHandler.accept(ERROR_KEY, message);
 
         verify(weatherRepository, never()).save(any(WeatherDomain.class));
         verify(errorDomainConverter, times(1)).convert(anyString(), anyString());
@@ -159,7 +159,7 @@ class SuccessConsumeHandlerTest {
 
 
         var  message = TestMessageDTOBuilder.aMessageDTO().withType(WEATHER).build();
-        assertThatThrownBy(() -> successConsumeHandler.accept(WEATHER_KEY, message)).isInstanceOf(AppConsumerException.class);
+        assertThatThrownBy(() -> consumeHandler.accept(WEATHER_KEY, message)).isInstanceOf(AppConsumerException.class);
 
         verify(successfulCompletionHook, never()).accept(anyString(), anyString());
         verify(errorCompletionHook, never()).accept(anyString(), any());
