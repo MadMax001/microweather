@@ -15,11 +15,11 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
+        <module>mw-common</module>
+        <module>mw-common-test</module>
         <module>mw-producer</module>
         <module>mw-yandex-weather</module>
         <module>mw-consumer-db</module>
-        <module>mw-common</module>
-        <module>mw-common-test</module>
     </modules>
 
     <properties>
@@ -30,6 +30,92 @@
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <java-uuid-generator.version>4.3.0</java-uuid-generator.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>embedded-tests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>test-case</name>
+                    <value>embedded</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <parallel>suites</parallel>
+                            <threadCountClasses>10</threadCountClasses>
+                            <excludedGroups>
+                                Containers
+                            </excludedGroups>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <excludedGroups>
+                                Containers
+                            </excludedGroups>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>containers-tests</id>
+            <activation>
+                <property>
+                    <name>test-case</name>
+                    <value>containers</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <parallel>suites</parallel>
+                            <threadCountClasses>10</threadCountClasses>
+                            <excludedGroups>
+                                EmbeddedKafka+H2
+                            </excludedGroups>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <excludedGroups>
+                                Containers
+                            </excludedGroups>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -51,9 +137,19 @@
                 <artifactId>java-uuid-generator</artifactId>
                 <version>${java-uuid-generator.version}</version>
             </dependency>
-
-
         </dependencies>
     </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>

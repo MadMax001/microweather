@@ -9,9 +9,7 @@
 
   <artifactId>mw-consumer-db</artifactId>
   <packaging>jar</packaging>
-
-  <name>mw-consumer-db</name>
-  <url>http://maven.apache.org</url>
+  <name>db persistence service</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,11 +40,6 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
@@ -60,11 +53,6 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.kafka</groupId>
@@ -122,7 +110,7 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>mw-producer</finalName>
+    <finalName>mw-consumer-db</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
@@ -136,29 +124,6 @@
             </exclude>
           </excludes>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.2</version>
-        <!--
-                        <configuration>
-                            <parallel>suites</parallel>
-                            <threadCountSuites>10</threadCountSuites>
-                        </configuration>
-        -->
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
