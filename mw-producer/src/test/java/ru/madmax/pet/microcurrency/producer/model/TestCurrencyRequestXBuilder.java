@@ -12,14 +12,14 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aRequest")
 @With
-public class TestCurrencyRequestXBuilder implements TestBuilder<CurrencyRequest> {
+public class TestCurrencyRequestXBuilder implements TestBuilder<CurrencyRequestX> {
     private Currency baseCurrency = Currency.RUB;;
     private Currency convertCurrency = Currency.USD;
     private BigDecimal baseAmount = new BigDecimal(50000);
-    private String source = "www.site1.ru";
+    private String source = "first";
 
     @Override
-    public CurrencyRequest build() {
+    public CurrencyRequestX build() {
         var request = new CurrencyRequestX();
         request.setBaseCurrency(baseCurrency);
         request.setConvertCurrency(convertCurrency);

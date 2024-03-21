@@ -18,7 +18,8 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microcurrency.producer.service.WeatherKafkaSenderService;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
+import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microweather.common.model.*;
 
 import java.util.concurrent.BlockingQueue;
@@ -40,12 +41,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 
-class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
+class CurrencyKafkaSenderServiceViaSetupMessageListenerTest {
 
     KafkaMessageListenerContainer<String, MessageDTO> container;
     BlockingQueue<ConsumerRecord<String, MessageDTO>> records;
 
-    final WeatherKafkaSenderService weatherSenderService;
+    final CurrencyKafkaSenderService currencySenderService;
     final ConsumerFactory<String, MessageDTO> consumerFactory;
     final ObjectMapper objectMapper;
 
@@ -75,21 +76,21 @@ class WeatherKafkaSenderServiceViaSetupMessageListenerTest {
 
     @Test
     void sendWeatherMessageToProducer() throws InterruptedException, JsonProcessingException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final ConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response))
                 .build();
 
         final String key = "message-listener-1";
-        weatherSenderService.produceMessage(key, messageDTO);
+        currencySenderService.produceMessage(key, messageDTO);
 
         ConsumerRecord<String, MessageDTO> message = records.poll(15000, TimeUnit.MILLISECONDS);
         assertThat(message).isNotNull();
         assertThat(message.key()).isEqualTo(key);
         assertThat(message.value()).isNotNull();
         assertThat(message.value().getMessage()).isEqualTo(messageDTO.getMessage());
-        assertThat(message.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(message.value().getType()).isEqualTo(MessageType.CURRENCY);
 
         assertThat(records).isEmpty();
         }

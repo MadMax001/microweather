@@ -14,8 +14,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
-import ru.madmax.pet.microcurrency.producer.service.WeatherKafkaSenderService;
+import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microweather.common.model.*;
 
 import java.util.concurrent.BlockingQueue;
@@ -33,8 +34,8 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlockTimeoutTest {
-    final WeatherKafkaSenderService weatherSenderService;
+class FailedCurrencyKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlockTimeoutTest {
+    final CurrencyKafkaSenderService currencySenderService;
     BlockingQueue<ConsumerRecord<String, MessageDTO>> records = new LinkedBlockingQueue<>();
 
     @SpyBean
@@ -55,14 +56,14 @@ class FailedWeatherKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBlock
     @Test
     void sendWeatherMessageToProducer_AndProducerBlockVeryLong_AndThrowAppProducerException()
             throws JsonProcessingException, InterruptedException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final ConversionResponse response = TestResponseBuilder.aResponse().build();;
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response))
                 .build();
 
         final String key = "kafka-annotation-3";
-        weatherSenderService.produceMessage(key, messageDTO);
+        currencySenderService.produceMessage(key, messageDTO);
         records.poll(10, TimeUnit.SECONDS);
 
         verify(logService, times(1)).info(anyString(), infoCaptor.capture());

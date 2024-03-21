@@ -17,11 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = WeatherRemoteServicesListBuilder.class)
+@EnableConfigurationProperties(value = CurrencyRemoteServicesListBuilder.class)
 @ActiveProfiles("test")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class WeatherRemoteServicesListBuilderTest {
-    private final WeatherRemoteServicesListBuilder servicesBuilder;
+class CurrencyRemoteServicesListBuilderTest {
+    private final CurrencyRemoteServicesListBuilder servicesBuilder;
 
     @Test
     void checkForRemoteServiceMap() {

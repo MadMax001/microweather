@@ -38,19 +38,22 @@ import org.springframework.web.reactive.function.BodyInserters;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microcurrency.producer.configuration.KafkaConfiguration;
-import ru.madmax.pet.microcurrency.producer.configuration.WeatherRemoteServicesListBuilder;
+import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
 import ru.madmax.pet.microcurrency.producer.controller.ExceptionHandlerController;
 import ru.madmax.pet.microcurrency.producer.controller.ProducerControllerV1;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
 import ru.madmax.pet.microcurrency.producer.model.RequestDTO;
+import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.*;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
 import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microcurrency.producer.model.TestRequestDTOBuilder;
-import ru.madmax.pet.microcurrency.producer.service.kafka.WeatherKafkaSenderServiceViaConsumerFactoryConfiguration;
+import ru.madmax.pet.microcurrency.producer.service.kafka.CurrencyKafkaSenderServiceViaConsumerFactoryConfiguration;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
@@ -67,12 +70,12 @@ import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KE
 @ActiveProfiles("test")
 @EnableConfigurationProperties
 @TestPropertySource(properties = {
-        "app.weather.timeout=1000",
-        "app.weather.retry.attempts=1",
-        "app.weather.retry.duration=150",
-        "app.weather.services[0].host=http://localhost:44445",
-        "app.weather.services[0].id=first",
-        "app.weather.services[0].path=/test",
+        "app.request.timeout=1000",
+        "app.request.retry.attempts=1",
+        "app.request.retry.duration=150",
+        "app.services[0].host=http://localhost:44445",
+        "app.services[0].id=first",
+        "app.services[0].path=/test",
         "spring.kafka.properties.isolation.level=read_committed",
         "spring.kafka.client-id=producer-tester",
         "spring.kafka.topic.name=test-simple-topic",
@@ -82,17 +85,17 @@ import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KE
 @ContextConfiguration(classes = {
         ObjectMapper.class,
         KafkaProperties.class,
-        WeatherRemoteServicesListBuilder.class,
+        CurrencyRemoteServicesListBuilder.class,
         HttpClientConfiguration.class,
         KafkaConfiguration.class,
-        WeatherKafkaSenderServiceViaConsumerFactoryConfiguration.class,
+        CurrencyKafkaSenderServiceViaConsumerFactoryConfiguration.class,
         Slf4JLogService.class,
         RandomUUIDGeneratorService.class,
         SuccessSendingHandler.class,
         ErrorSendingHandler.class,
-        WeatherKafkaSenderService.class,
+        CurrencyKafkaSenderService.class,
         ReactRequestService.class,
-        WeatherFacadeService.class,
+        CurrencyFacadeService.class,
         ProducerControllerV1.class,
         ExceptionHandlerController.class
 })
@@ -145,10 +148,10 @@ class ProducerServiceWithMockedProducerIT {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
-        String responseContent = "{\"now\":1234567890,\"fact\":{\"temp\":10.0,\"windSpeed\":5.3},\"info\":{\"url\":\"www.test.ru\"}}";
+        String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
 
         var receivedResponseEntityContent = webTestClient
@@ -178,7 +181,7 @@ class ProducerServiceWithMockedProducerIT {
         assertThat(consumerRecord).isNotNull();
         assertThat(consumerRecord.key()).isEqualTo(guidReference.get());
         assertThat(consumerRecord.value().getMessage()).isEqualTo(responseContent);
-        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.CURRENCY);
         assertThat(records).isEmpty();
 
         verify(logService, times(6)).info(anyString(), stringCaptor.capture());
@@ -191,8 +194,8 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -242,17 +245,17 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final String weatherString = objectMapper.writeValueAsString(weather);
+        var response = TestResponseBuilder.aResponse().build();
+        final String responseString = objectMapper.writeValueAsString(response);
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
-                .setBody(weatherString));
+                .setBody(responseString));
 
         var receivedResponseEntityContent = webTestClient
                 .post()
@@ -280,8 +283,8 @@ class ProducerServiceWithMockedProducerIT {
         ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(20, TimeUnit.SECONDS);
         assertThat(consumerRecord).isNotNull();
         assertThat(consumerRecord.key()).isEqualTo(guidReference.get());
-        assertThat(consumerRecord.value().getMessage()).isEqualTo(weatherString);
-        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord.value().getMessage()).isEqualTo(responseString);
+        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.CURRENCY);
         assertThat(records).isEmpty();
 
         verify(logService, times(8)).info(anyString(), stringCaptor.capture());
@@ -294,7 +297,7 @@ class ProducerServiceWithMockedProducerIT {
     void registerWeatherWithWrongStructure_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
             throws  InterruptedException {
         records.clear();
-        final String requestStr = "{\"source\":\"first\",\"ipoint\":{\"lat\":51.534986,\"lon\":46.001373}}";
+        final String requestStr = "{\"source\":\"first\",\"Abase_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":50000}";
 
         var receivedResponseEntityContent = webTestClient
                 .post()
@@ -304,7 +307,7 @@ class ProducerServiceWithMockedProducerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isBadRequest()
-                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Point is not set")
+                .expectHeader().valueEquals(HEADER_REQUEST_ERROR_KEY, "Base currency is wrong or not defined")
                 .returnResult(String.class)
                 .getResponseBody()
                 .log();
@@ -324,7 +327,7 @@ class ProducerServiceWithMockedProducerIT {
     void registerWeatherWithWrongSource_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
             throws  InterruptedException {
         records.clear();
-        final String requestStr = "{\"source\":\"fast\",\"point\":{\"lat\":51.534986,\"lon\":46.001373}}";
+        final String requestStr = "{\"source\":\"farst\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":50000}";
 
         var receivedResponseEntityContent = webTestClient
                 .post()
@@ -361,10 +364,10 @@ class ProducerServiceWithMockedProducerIT {
         Throwable error = new KafkaException("Mock kafka error!");
         doThrow(error).when(kafkaTemplate).send(anyString(), anyString(), any(MessageDTO.class));
 
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
-        String responseContent = "{\"now\":1234567890,\"fact\":{\"temp\":10.0,\"windSpeed\":5.3},\"info\":{\"url\":\"www.test.ru\"}}";
+        String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
 
         var receivedResponseEntityContent = webTestClient
@@ -399,11 +402,10 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         var objectMapper = new ObjectMapper();
 
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
         String remoteServiceResponseContent = "__{bad structure}";
-//        setMockResponseFromServer(500, remoteServiceResponseContent, "IllegalModelStructureException: " + remoteServiceResponseContent, 500);
 
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -456,16 +458,13 @@ class ProducerServiceWithMockedProducerIT {
 
         var objectMapper = new ObjectMapper();
         int concurrency = 10;
-        RequestDTO[] requests = new RequestDTO[concurrency];
+
+
+        CurrencyRequest[] requests = new CurrencyRequest[concurrency];
         for (int i = 0; i < concurrency; i++)
-            requests[i] = TestRequestDTOBuilder.aRequestDTO()
+            requests[i] = TestCurrencyRequestXBuilder.aRequest()
                     .withSource("first")
-                    .withPoint(
-                            TestPointBuilder
-                                    .aPoint()
-                                    .withLat((double)i)
-                                    .withLon((double)i)
-                                    .build())
+                    .withBaseAmount(new BigDecimal(i + 1))
                     .build();
 
         Dispatcher dispatcher = new Dispatcher() {
@@ -478,11 +477,11 @@ class ProducerServiceWithMockedProducerIT {
                     try {
                         var response = new MockResponse();
                         response.addHeader("Content-Type", MediaType.APPLICATION_JSON);
-                        var weather = TestWeatherBuilder.aWeather()
-                                .withNow(System.currentTimeMillis())
+                        var currencyResponse = TestResponseBuilder.aResponse()
+                                .withAmount(new BigDecimal(System.currentTimeMillis()))
                                 .build();
+                        String responseContentString = objectMapper.writeValueAsString(currencyResponse);
 
-                        String responseContentString = objectMapper.writeValueAsString(weather);
                         return response
                                 .setBody(responseContentString)
                                 .setBodyDelay(200, TimeUnit.MILLISECONDS);
@@ -531,7 +530,7 @@ class ProducerServiceWithMockedProducerIT {
         ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(20, TimeUnit.SECONDS);
         while (consumerRecord != null) {
             assertThat(guidSet).contains(consumerRecord.key());
-            assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
+            assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.CURRENCY);
             sentMessages.add(consumerRecord.value());
             consumerRecord = records.poll(20, TimeUnit.SECONDS);
         }
@@ -550,10 +549,10 @@ class ProducerServiceWithMockedProducerIT {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final RequestDTO request = TestRequestDTOBuilder.aRequestDTO().build();
-        final String stringRequest = objectMapper.writeValueAsString(request);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
 
-        String responseContent = "{\"now\":1234567890,\"fact\":{\"temp\":10.0,\"windSpeed\":5.3},\"info\":{\"url\":\"www.test.ru\"}}";
+        String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(1200, responseContent);
 
         var receivedResponseEntityContent = webTestClient

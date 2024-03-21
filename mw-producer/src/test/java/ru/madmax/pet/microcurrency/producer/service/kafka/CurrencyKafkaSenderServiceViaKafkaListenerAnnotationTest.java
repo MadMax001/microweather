@@ -15,12 +15,14 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
-import ru.madmax.pet.microcurrency.producer.service.WeatherKafkaSenderService;
+import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
 import ru.madmax.pet.microweather.common.model.*;
 
+import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -36,9 +38,9 @@ import static org.mockito.Mockito.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 //@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
+class CurrencyKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
-    final WeatherKafkaSenderService weatherSenderService;
+    final CurrencyKafkaSenderService currencySenderService;
     final KafkaTemplate<String, MessageDTO> kafkaTemplate;
     final SuccessSendingHandler successSendingHandler;
     final ErrorSendingHandler errorSendingHandler;
@@ -66,21 +68,21 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendWeatherMessageToProducer_AndConsumerGetMessage() throws InterruptedException, JsonProcessingException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final ConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response))
                 .build();
 
         final String key = "kafka-annotation-1.1";
-        weatherSenderService.produceMessage(key, messageDTO);
+        currencySenderService.produceMessage(key, messageDTO);
         ConsumerRecord<String, MessageDTO> consumerRecord = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord).isNotNull();
         assertThat(consumerRecord.key()).isEqualTo(key);
         assertThat(consumerRecord.value()).isNotNull();
         assertThat(consumerRecord.value().getMessage()).isEqualTo(messageDTO.getMessage());
-        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord.value().getType()).isEqualTo(MessageType.CURRENCY);
         assertThat(records).isEmpty();
 
         verify(logService, times(2)).info(keyCaptor.capture(), logInfoCaptor.capture());
@@ -96,31 +98,31 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendTwoWeatherMessagesToProducerOneAfterAnother_andConsumerGetTwoMessages() throws InterruptedException, JsonProcessingException {
-        final Weather weather1 = TestWeatherBuilder.aWeather().withNow(1L).build();
+        final ConversionResponse response1 = TestResponseBuilder.aResponse().withFrom(Currency.RUB).build();
         final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather1))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response1))
                 .build();
 
-        final Weather weather2 = TestWeatherBuilder.aWeather().withNow(2L).build();
+        final ConversionResponse response2 = TestResponseBuilder.aResponse().withFrom(Currency.USD).build();
         final MessageDTO messageDTO2 = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather2))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response2))
                 .build();
 
         final String key1 = "kafka-annotation-2.1";
         final String key2 = "kafka-annotation-2.2";
 
 
-        weatherSenderService.produceMessage(key1, messageDTO1);
-        weatherSenderService.produceMessage(key2, messageDTO2);
+        currencySenderService.produceMessage(key1, messageDTO1);
+        currencySenderService.produceMessage(key2, messageDTO2);
         ConsumerRecord<String, MessageDTO> consumerRecord1 = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord1).isNotNull();
         assertThat(consumerRecord1.key()).isEqualTo(key1);
         assertThat(consumerRecord1.value()).isNotNull();
         assertThat(consumerRecord1.value().getMessage()).isEqualTo(messageDTO1.getMessage());
-        assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.CURRENCY);
 
         ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(15000, TimeUnit.MILLISECONDS);
 
@@ -128,7 +130,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord2.key()).isEqualTo(key2);
         assertThat(consumerRecord2.value()).isNotNull();
         assertThat(consumerRecord2.value().getMessage()).isEqualTo(messageDTO2.getMessage());
-        assertThat(consumerRecord2.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord2.value().getType()).isEqualTo(MessageType.CURRENCY);
 
         assertThat(records).isEmpty();
 
@@ -150,16 +152,16 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void tryToSendToUnexistingTopic_andConsumerDoesNotGetAnyMessage() throws InterruptedException, JsonProcessingException {
-        var producerServiceWithUnexistingTopic = new WeatherKafkaSenderService(
+        var producerServiceWithUnexistingTopic = new CurrencyKafkaSenderService(
                 "mock-topic",
                 kafkaTemplate,
                 logService,
                 successSendingHandler,
                 errorSendingHandler);
-        final Weather weather = TestWeatherBuilder.aWeather().build();
+        final ConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response))
                 .build();
 
         final String key = "kafka-annotation-3.1";
@@ -176,28 +178,28 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendTwoWeatherMessagesWitSameKeysToProducer_andConsumeTwoMessagesInSameOrder() throws InterruptedException, JsonProcessingException {
-        final Weather weather1 = TestWeatherBuilder.aWeather().withNow(1L).build();
+        final ConversionResponse response1 = TestResponseBuilder.aResponse().withAmount(BigDecimal.ONE).build();
         final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather1))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response1))
                 .build();
 
-        final Weather weather2 = TestWeatherBuilder.aWeather().withNow(2L).build();
+        final ConversionResponse response2 = TestResponseBuilder.aResponse().withAmount(BigDecimal.TEN).build();
         final MessageDTO messageDTO2 = TestMessageDTOBuilder.aMessageDTO()
-                .withType(MessageType.WEATHER)
-                .withMessage(objectMapper.writeValueAsString(weather2))
+                .withType(MessageType.CURRENCY)
+                .withMessage(objectMapper.writeValueAsString(response2))
                 .build();
 
         final String key = "kafka-annotation-4.1";
-        weatherSenderService.produceMessage(key, messageDTO1);
-        weatherSenderService.produceMessage(key, messageDTO2);
+        currencySenderService.produceMessage(key, messageDTO1);
+        currencySenderService.produceMessage(key, messageDTO2);
         ConsumerRecord<String, MessageDTO> consumerRecord1 = records.poll(15000, TimeUnit.MILLISECONDS);
 
         assertThat(consumerRecord1).isNotNull();
         assertThat(consumerRecord1.key()).isEqualTo(key);
         assertThat(consumerRecord1.value()).isNotNull();
         assertThat(consumerRecord1.value().getMessage()).isEqualTo(messageDTO1.getMessage());
-        assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord1.value().getType()).isEqualTo(MessageType.CURRENCY);
 
         ConsumerRecord<String, MessageDTO> consumerRecord2 = records.poll(15000, TimeUnit.MILLISECONDS);
 
@@ -205,7 +207,7 @@ class WeatherKafkaSenderServiceViaKafkaListenerAnnotationTest {
         assertThat(consumerRecord2.key()).isEqualTo(key);
         assertThat(consumerRecord2.value()).isNotNull();
         assertThat(consumerRecord2.value().getMessage()).isEqualTo(messageDTO2.getMessage());
-        assertThat(consumerRecord2.value().getType()).isEqualTo(MessageType.WEATHER);
+        assertThat(consumerRecord2.value().getType()).isEqualTo(MessageType.CURRENCY);
 
         assertThat(records).isEmpty();
 

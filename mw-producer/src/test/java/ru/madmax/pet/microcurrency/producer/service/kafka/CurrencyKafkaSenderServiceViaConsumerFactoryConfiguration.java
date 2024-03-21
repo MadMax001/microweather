@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class WeatherKafkaSenderServiceViaConsumerFactoryConfiguration {
+public class CurrencyKafkaSenderServiceViaConsumerFactoryConfiguration {
     @Value("${spring.kafka.bootstrap-servers}")
     String brokers;
     @Bean

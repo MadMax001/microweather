@@ -1,14 +1,13 @@
 app:
-  weather:
-    services:
-      -
-        id: first
-        host: http://value1.ru
-        path: /value2
-      -
-        id: second
-        host: https://value3.org
-        path: value4
+  services:
+    -
+      id: first
+      host: http://value1.ru
+      path: /value2
+    -
+      id: second
+      host: https://value3.org
+      path: value4
 spring:
   http:
     log-request-details: true

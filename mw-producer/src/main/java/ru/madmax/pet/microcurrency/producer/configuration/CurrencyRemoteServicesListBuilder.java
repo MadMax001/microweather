@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.weather")
-public class WeatherRemoteServicesListBuilder {
+@ConfigurationProperties(prefix = "app")
+public class CurrencyRemoteServicesListBuilder {
     private Map<String, URL> map;
 
     public void setServices(List<RemoteServiceUrl> services) {

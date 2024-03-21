@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microweather.common.model.Point;
-import ru.madmax.pet.microweather.common.model.Weather;
+import ru.madmax.pet.microcurrency.producer.model.ConversionResponseX;
+import ru.madmax.pet.microweather.common.model.CurrencyRequest;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 
 import java.time.Duration;
@@ -26,27 +26,28 @@ import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KE
 import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
 
 @Service
-public class ReactRequestService implements WeatherRequestService {
+public class ReactRequestService implements CurrencyRequestService {
     private final HttpClient httpClient;
     private final LogService logService;
-    private final Integer weatherRetryDuration;
-    private final Integer weatherRetryAttempts;
+    private final Integer requestRetryDuration;
+    private final Integer requestRetryAttempts;
 
     public ReactRequestService(HttpClient httpClient,
                                LogService logService,
-                               @Value("${app.weather.retry.duration}") Integer weatherRetryDuration,
-                               @Value("${app.weather.retry.attempts}") Integer weatherRetryAttempts) {
-        this.weatherRetryDuration = weatherRetryDuration;
-        this.weatherRetryAttempts = weatherRetryAttempts;
+                               @Value("${app.request.retry.duration}") Integer requestRetryDuration,
+                               @Value("${app.request.retry.attempts}") Integer requestRetryAttempts) {
+        this.requestRetryDuration = requestRetryDuration;
+        this.requestRetryAttempts = requestRetryAttempts;
         this.httpClient = httpClient;
         this.logService = logService;
     }
 
     @Override
-    public Mono<Weather> sendRequest(Point point, RequestParams params) {
+    public Mono<ConversionResponseX> sendRequest(CurrencyRequest request, RequestParams params) {
         logService.info(
                 params.getGuid(),
                 String.format("Send to %s", params.getUrl().toString()));
+
         var webClient = WebClient.builder()
                 .baseUrl(String.format("%s://%s",
                         params.getUrl().getProtocol(),
@@ -54,19 +55,20 @@ public class ReactRequestService implements WeatherRequestService {
                 .defaultHeader(HEADER_REQUEST_GUID_KEY, params.getGuid())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
+
         return webClient
                 .post()
                 .uri(uriBuilder -> uriBuilder
                         .path(params.getUrl().getPath())
                         .build())
-                .body(BodyInserters.fromValue(point))
+                .body(BodyInserters.fromValue(request))
                 .exchangeToMono(response -> {
                     logResponseDetails(response, params);
                     if (response.statusCode().is2xxSuccessful())
                         return createSuccessMonoResponse(response);
                     return createErrorMonoResponse(response);
                 })
-                .retryWhen(Retry.backoff(weatherRetryAttempts, Duration.ofMillis(weatherRetryDuration))
+                .retryWhen(Retry.backoff(requestRetryAttempts, Duration.ofMillis(requestRetryDuration))
                         .doBeforeRetry(retry -> logService.info(
                                 params.getGuid(),
                                 String.format("Retrying, %d", retry.totalRetries())))
@@ -82,7 +84,7 @@ public class ReactRequestService implements WeatherRequestService {
                 .asHttpHeaders()
                 .entrySet()
                 .stream()
-                .filter(entry -> entry.getKey().startsWith("request-"))
+                .filter(entry -> entry.getKey().startsWith("X-request-"))
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .collect(Collectors.joining(", "));
         var statusString = response.statusCode().toString();
@@ -94,11 +96,11 @@ public class ReactRequestService implements WeatherRequestService {
         );
     }
 
-    private Mono<Weather> createSuccessMonoResponse(ClientResponse response) {
-        return response.bodyToMono(Weather.class);
+    private Mono<ConversionResponseX> createSuccessMonoResponse(ClientResponse response) {
+        return response.bodyToMono(ConversionResponseX.class);
     }
 
-    private Mono<Weather> createErrorMonoResponse(final ClientResponse response) {
+    private Mono<ConversionResponseX> createErrorMonoResponse(final ClientResponse response) {
         List<String> requestErrorHeaderValues =
                 (response.headers().asHttpHeaders().get(HEADER_REQUEST_ERROR_KEY));
         if (requestErrorHeaderValues != null && !requestErrorHeaderValues.isEmpty()) {

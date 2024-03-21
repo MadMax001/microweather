@@ -3,49 +3,49 @@ package ru.madmax.pet.microcurrency.producer.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
-import ru.madmax.pet.microcurrency.producer.model.RequestDTO;
+import ru.madmax.pet.microcurrency.producer.model.CurrencyRequestX;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.MessageType;
 
 import java.util.concurrent.CompletableFuture;
 
-import static ru.madmax.pet.microweather.common.model.MessageType.ERROR;
-import static ru.madmax.pet.microweather.common.model.MessageType.WEATHER;
+import static ru.madmax.pet.microweather.common.model.MessageType.*;
 
-//@Service
+@Service
 @AllArgsConstructor
-public class WeatherFacadeService implements WeatherService {
+public class CurrencyFacadeService implements CurrencyService {
     private final UUIDGeneratorService uuidGeneratorService;
-    private final WeatherRequestService requestService;
+    private final CurrencyRequestService requestService;
     private final CurrencyProducerService producerService;
     private final CurrencyRemoteServicesListBuilder servicesBuilder;
     private final LogService logService;
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<String> registerRequest(RequestDTO request) {
+    public Mono<String> registerRequest(CurrencyRequestX request) {
         CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> {
             final String guid = uuidGeneratorService.randomGenerate();
             logService.info(
                     guid,
                     String.format("Register request: %s", request.toString()));
             RequestParams params = buildRequestParams (guid, request);
-            var monoWeather = requestService.sendRequest(request.getPoint(), params);
+            var monoWeather = requestService.sendRequest(request, params);
             monoWeather
                     .subscribe(
-                            weather -> {
+                            currency -> {
                                 logService.info(guid, "Get response");
-                                produceMessage(guid, WEATHER, weather);
+                                produceMessage(guid, CURRENCY, currency);
                             },
                             error -> {
                                 logService.error(
                                         guid,
                                         String.format("Error response: %s:%s",
-                                            error.getClass().getName(),
-                                            error.getMessage()));
+                                                error.getClass().getName(),
+                                                error.getMessage()));
                                 produceMessage(guid, ERROR, error);
                             }
                     );
@@ -54,7 +54,7 @@ public class WeatherFacadeService implements WeatherService {
         return Mono.fromFuture(cf);
     }
 
-    private RequestParams buildRequestParams (String guid, RequestDTO request) {
+    private RequestParams buildRequestParams (String guid, CurrencyRequestX request) {
         return RequestParams.builder()
                 .guid(guid)
                 .url(servicesBuilder.getURLByKey(request.getSource()))
@@ -70,7 +70,7 @@ public class WeatherFacadeService implements WeatherService {
     private MessageDTO createMessage(MessageType type, Object object) {
         var message = new MessageDTO();
         message.setType(type);
-        if (type == WEATHER) {
+        if (type == CURRENCY) {
             try {
                 message.setMessage(objectMapper.writeValueAsString(object));
             } catch (JsonProcessingException e) {

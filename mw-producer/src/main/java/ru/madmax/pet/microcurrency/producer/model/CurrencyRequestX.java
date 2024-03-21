@@ -8,4 +8,9 @@ import ru.madmax.pet.microweather.common.model.CurrencyRequest;
 public class CurrencyRequestX extends CurrencyRequest {
     @NotNull(message = "Source is not defined")
     private String source;
+
+    @Override
+    public String toString() {
+        return "Request {source=" + this.getSource() + " " + super.toString() + "}";
+    }
 }

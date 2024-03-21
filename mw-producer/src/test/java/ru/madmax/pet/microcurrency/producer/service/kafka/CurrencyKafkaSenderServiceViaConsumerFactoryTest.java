@@ -14,8 +14,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
-import ru.madmax.pet.microcurrency.producer.service.WeatherKafkaSenderService;
+import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microweather.common.model.*;
 
 import java.time.Duration;
@@ -26,15 +27,14 @@ import static org.mockito.Mockito.*;
 
 @ActiveProfiles("test")
 @SpringBootTest
-//@ContextConfiguration(classes = WeatherKafkaSenderServiceViaConsumerFactoryConfiguration.class)
 @EmbeddedKafka(bootstrapServersProperty = "${spring.kafka.bootstrap-servers}",
                 topics = "${spring.kafka.topic.name}"
 )
 @DirtiesContext
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class WeatherKafkaSenderServiceViaConsumerFactoryTest {
-    final WeatherKafkaSenderService weatherSenderService;
+class CurrencyKafkaSenderServiceViaConsumerFactoryTest {
+    final CurrencyKafkaSenderService currencySenderService;
     final ConsumerFactory<String, MessageDTO> consumerFactory;
     @Value("${spring.kafka.topic.name}")
     String testTopic;
@@ -52,14 +52,14 @@ class WeatherKafkaSenderServiceViaConsumerFactoryTest {
         ) {
             consumer.subscribe(Collections.singletonList(testTopic));
 
-            final Weather weather = TestWeatherBuilder.aWeather().build();
+            final ConversionResponse response = TestResponseBuilder.aResponse().build();
             final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
-                    .withType(MessageType.WEATHER)
-                    .withMessage(objectMapper.writeValueAsString(weather))
+                    .withType(MessageType.CURRENCY)
+                    .withMessage(objectMapper.writeValueAsString(response))
                     .build();
 
             final String key = "consumer-factory-1";
-            weatherSenderService.produceMessage(key, messageDTO);
+            currencySenderService.produceMessage(key, messageDTO);
 
             ConsumerRecords<String, MessageDTO> messages = consumer.poll(Duration.ofSeconds(15));
 
@@ -68,7 +68,7 @@ class WeatherKafkaSenderServiceViaConsumerFactoryTest {
                 assertThat(singleRecord.key()).isEqualTo(key);
                 assertThat(singleRecord.value()).isNotNull();
                 assertThat(singleRecord.value().getMessage()).isEqualTo(messageDTO.getMessage());
-                assertThat(singleRecord.value().getType()).isEqualTo(MessageType.WEATHER);
+                assertThat(singleRecord.value().getType()).isEqualTo(MessageType.CURRENCY);
             });
 
             verify(logService, times(2)).info(anyString(), anyString());

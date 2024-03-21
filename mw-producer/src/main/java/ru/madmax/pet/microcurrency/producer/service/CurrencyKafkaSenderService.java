@@ -14,7 +14,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Service
-public class WeatherKafkaSenderService implements WeatherProducerService {
+public class CurrencyKafkaSenderService implements CurrencyProducerService {
 
     private final String sendClientTopic;
     private final KafkaTemplate<String , MessageDTO> kafkaTemplate;
@@ -22,11 +22,11 @@ public class WeatherKafkaSenderService implements WeatherProducerService {
     private final BiConsumer<String, SendResult<String, MessageDTO>> successSendingHandler;
     private final BiConsumer<String,Throwable> errorSendingHandler;
 
-    public WeatherKafkaSenderService(@Value("${spring.kafka.topic.name}") String sendClientTopic,
-                                     KafkaTemplate<String, MessageDTO> kafkaTemplate,
-                                     LogService logService,
-                                     BiConsumer<String,SendResult<String, MessageDTO>> successSendingHandler,
-                                     BiConsumer<String,Throwable> errorSendingHandler) {
+    public CurrencyKafkaSenderService(@Value("${spring.kafka.topic.name}") String sendClientTopic,
+                                      KafkaTemplate<String, MessageDTO> kafkaTemplate,
+                                      LogService logService,
+                                      BiConsumer<String,SendResult<String, MessageDTO>> successSendingHandler,
+                                      BiConsumer<String,Throwable> errorSendingHandler) {
         this.sendClientTopic = sendClientTopic;
         this.kafkaTemplate = kafkaTemplate;
         this.logService = logService;

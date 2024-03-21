@@ -21,4 +21,11 @@ public class CurrencyRequest {
     @NotNull(message = "Amount is not defined")
     @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be more than 0")
     private BigDecimal baseAmount;
+
+    @Override
+    public String toString() {
+        return    "baseCurrency=" + this.getBaseCurrency() +
+                ", convertCurrency=" + this.getConvertCurrency() +
+                ", baseAmount=" + this.getBaseAmount();
+    }
 }

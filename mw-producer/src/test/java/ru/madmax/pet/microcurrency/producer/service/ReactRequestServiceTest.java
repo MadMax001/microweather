@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.support.JacksonUtils;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -27,11 +28,11 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
+import ru.madmax.pet.microcurrency.producer.model.ConversionResponseX;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
-import ru.madmax.pet.microweather.common.model.Point;
-import ru.madmax.pet.microweather.common.model.TestPointBuilder;
-import ru.madmax.pet.microweather.common.model.TestWeatherBuilder;
-import ru.madmax.pet.microweather.common.model.Weather;
+import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
+import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
+import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -45,18 +46,18 @@ import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY
 import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@TestPropertySource(properties = {"app.weather.timeout=1000"})
-@ContextConfiguration(classes = HttpClientConfiguration.class)
+@TestPropertySource(properties = {"app.request.timeout=1000"})
+@ContextConfiguration(classes = {HttpClientConfiguration.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @ActiveProfiles("test")
 class ReactRequestServiceTest {
     private final HttpClient httpClient;
-
+    ObjectMapper objectMapper = JacksonUtils.enhancedObjectMapper();
     @MockBean
     LogService logService;
 
     MockWebServer remoteMockServer;
-    WeatherRequestService loaderService;
+    CurrencyRequestService loaderService;
 
     @Captor
     ArgumentCaptor<String> logInfoCaptor;
@@ -84,19 +85,18 @@ class ReactRequestServiceTest {
     @Test
     void sendRequest_ReturnOK_AndCheckForRequestDetails_AndCheckForReturningMonoObject_AndCheckLogs()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final ObjectMapper mapper = new ObjectMapper();
-        final String stringResponseContent = mapper.writeValueAsString(weather);
-
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
+        final ConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final Point point = TestPointBuilder.aPoint().build();
-        final String stringRequestContent = mapper.writeValueAsString(point);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequestContent = objectMapper.writeValueAsString(currencyRequest);
+
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -104,10 +104,10 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<Weather> weatherMono = loaderService.sendRequest(point, params);
+        Mono<ConversionResponseX> responseMono = loaderService.sendRequest(currencyRequest, params);
 
-        StepVerifier.create(weatherMono)
-                .expectNext(weather)
+        StepVerifier.create(responseMono)
+                .expectNext(response)
                 .expectComplete()
                 .verify();
 
@@ -115,7 +115,7 @@ class ReactRequestServiceTest {
         assertThat(request.getMethod()).isEqualTo("POST");
         assertThat(request.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
         assertThat(request.getRequestLine()).contains(url.getPath());
-        assertThat(request.getBody().toString()).contains(stringRequestContent);
+        assertThat(request.getBody().readUtf8()).isEqualTo(stringRequestContent);
 
         verify(logService, times(2)).info(keyCaptor.capture(), logInfoCaptor.capture());
         List<String> logLines = logInfoCaptor.getAllValues();
@@ -132,21 +132,19 @@ class ReactRequestServiceTest {
     @Test
     void sendRequest_WhenServerIs503UnavailableOnce_CheckRetry_AndAnswersAfterOneRetry_ReturnOK_AndCheckForReturningMonoObject_AndCheckLogs()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final ObjectMapper mapper = new ObjectMapper();
-        final String stringResponseContent = mapper.writeValueAsString(weather);
-
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
+        final ConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final Point point = TestPointBuilder.aPoint().build();
-        final String stringRequestContent = mapper.writeValueAsString(point);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequestContent = objectMapper.writeValueAsString(currencyRequest);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -154,10 +152,10 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<Weather> weatherMono = loaderService.sendRequest(point, params);
+        Mono<ConversionResponseX> responseMono = loaderService.sendRequest(currencyRequest, params);
 
-        StepVerifier.create(weatherMono)
-                .expectNext(weather)
+        StepVerifier.create(responseMono)
+                .expectNext(response)
                 .expectComplete()
                 .verify();
 
@@ -166,7 +164,7 @@ class ReactRequestServiceTest {
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
             assertThat(recordedRequest.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
             assertThat(recordedRequest.getRequestLine()).contains(url.getPath());
-            assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
+            assertThat(recordedRequest.getBody().readUtf8()).isEqualTo(stringRequestContent);
         }
 
         verify(logService, times(4)).info(keyCaptor.capture(), logInfoCaptor.capture());
@@ -191,13 +189,11 @@ class ReactRequestServiceTest {
     @Test
     void sendRequest_WhenServerIs503UnavailableMoreThanRetryThreshold_CheckRetry_ReturnError_AndCheckForReturningMonoError_AndCheckLogs()
             throws JsonProcessingException, InterruptedException, MalformedURLException {
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final ObjectMapper mapper = new ObjectMapper();
-        final String stringResponseContent = mapper.writeValueAsString(weather);
-
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
+        final ConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
         remoteMockServer.enqueue(new MockResponse()
@@ -206,16 +202,17 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final Point point = TestPointBuilder.aPoint().build();
-        final String stringRequestContent = mapper.writeValueAsString(point);
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequestContent = objectMapper.writeValueAsString(currencyRequest);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
                 .guid("test-guid")
                 .url(url)
                 .build();
-        Mono<Weather> weatherMono = loaderService.sendRequest(point, params);
-        StepVerifier.create(weatherMono)
+
+        Mono<ConversionResponseX> responseMono = loaderService.sendRequest(currencyRequest, params);
+        StepVerifier.create(responseMono)
                 .expectErrorMatches(
                         throwable -> throwable.getClass().toString().contains("RetryExhaustedException") &&
                                 throwable.getMessage().contains("Retries exhausted")
@@ -226,7 +223,7 @@ class ReactRequestServiceTest {
             assertThat(recordedRequest.getMethod()).isEqualTo("POST");
             assertThat(recordedRequest.getHeader(HEADER_REQUEST_GUID_KEY)).isEqualTo("test-guid");
             assertThat(recordedRequest.getRequestLine()).contains(url.getPath());
-            assertThat(recordedRequest.getBody().toString()).contains(stringRequestContent);
+            assertThat(recordedRequest.getBody().readUtf8()).isEqualTo(stringRequestContent);
         }
 
         verify(logService, times(4)).info(keyCaptor.capture(), logInfoCaptor.capture());
@@ -275,7 +272,7 @@ class ReactRequestServiceTest {
         };
         remoteMockServer.setDispatcher(dispatcher);
 
-        final Point point = TestPointBuilder.aPoint().build();
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -283,9 +280,9 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        var weatherMono = loaderService.sendRequest(point, params);
+        var responseMono = loaderService.sendRequest(currencyRequest, params);
 
-        StepVerifier.create(weatherMono)
+        StepVerifier.create(responseMono)
                 .expectErrorMatches(
                         throwable -> throwable.getClass().toString().contains("RemoteServiceException") &&
                                 throwable.getMessage().contains("test-value")
@@ -322,7 +319,7 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final Point point = TestPointBuilder.aPoint().build();
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -330,9 +327,9 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        var weatherMono = loaderService.sendRequest(point, params);
+        var currencyMono = loaderService.sendRequest(currencyRequest, params);
 
-        StepVerifier.create(weatherMono)
+        StepVerifier.create(currencyMono)
                 .expectError()
                 .verify();
 
@@ -359,9 +356,8 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final ObjectMapper mapper = new ObjectMapper();
-        final String stringResponseContent = mapper.writeValueAsString(weather);
+        final ConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final String stringResponseContent = objectMapper.writeValueAsString(response);
 
         Dispatcher dispatcher = new Dispatcher() {
             @NotNull
@@ -381,7 +377,7 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final Point point = TestPointBuilder.aPoint().build();
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -389,11 +385,11 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
         var startTime = System.nanoTime();
-        var weatherMono = loaderService.sendRequest(point, params);
+        var responseMono = loaderService.sendRequest(currencyRequest, params);
         var finishTime = System.nanoTime();
-        var receiverWeather = weatherMono.block();
+        var receiverCurrency = responseMono.block();
         var receivedTime = System.nanoTime();
-        assertThat(receiverWeather).isEqualTo(weather);
+        assertThat(receiverCurrency).isEqualTo(response);
         assertThat((int)((finishTime - startTime) / 1_000_000_000)).isZero();
         assertThat((int)(receivedTime - finishTime) / 500_000_000).isPositive();
 
@@ -413,9 +409,8 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final Weather weather = TestWeatherBuilder.aWeather().build();
-        final ObjectMapper mapper = new ObjectMapper();
-        final String stringResponseContent = mapper.writeValueAsString(weather);
+        final ConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final String stringResponseContent = objectMapper.writeValueAsString(response);
 
         Dispatcher dispatcher = new Dispatcher() {
             @NotNull
@@ -435,15 +430,15 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final Point point = TestPointBuilder.aPoint().build();
+        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
                 .guid("test-guid")
                 .url(url)
                 .build();
-        var weatherMono = loaderService.sendRequest(point, params);
-        StepVerifier.create(weatherMono)
+        var responseMono = loaderService.sendRequest(currencyRequest, params);
+        StepVerifier.create(responseMono)
                 .expectErrorMatches(
                         throwable -> throwable.getClass().toString().contains("RetryExhaustedException") &&
                                 throwable.getMessage().contains("Retries exhausted")
