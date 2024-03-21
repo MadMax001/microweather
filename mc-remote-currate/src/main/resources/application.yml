@@ -1,0 +1,11 @@
+app:
+  request:
+    timeout: 1500
+    retry:
+      duration: 150
+      attempts: 3
+  url: https://currate.ru
+  path: /api/
+  key: 1589eb3557496051c433b2144eb14f55
+server:
+  shutdown: graceful
