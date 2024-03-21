@@ -3,7 +3,6 @@ package ru.madmax.pet.microcurrency.producer.model;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.madmax.pet.microweather.common.model.ConversionResponse;
 import ru.madmax.pet.microweather.common.model.Currency;
 import ru.madmax.pet.microweather.common.model.TestBuilder;
 
@@ -25,7 +24,7 @@ public class TestResponseBuilder implements TestBuilder<ConversionResponseX> {
     public ConversionResponseX build() {
         var response = new ConversionResponseX();
         response.setFrom(from);
-        response.setTo(to);;
+        response.setTo(to);
         response.setRate(rate);
         response.setAmount(amount);
         response.setSource(source);

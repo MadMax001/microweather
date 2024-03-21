@@ -76,7 +76,7 @@ class ProducerControllerV1Test {
 
 
     @Test
-    void currencyCorrectRequest_WithFloatAmount_WithPointSeparation_AndCheckAnswerAndHeader() throws Exception {
+    void currencyCorrectRequest_WithFloatAmount_WithPointSeparation_AndCheckAnswerAndHeader() {
         String stringContent = "{\"source\":\"www.site1.ru\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123.32\"}";
         when(currencyService.registerRequest(any(CurrencyRequestX.class))).thenReturn(Mono.just("test-guid"));
 
@@ -98,7 +98,7 @@ class ProducerControllerV1Test {
     }
 
     @Test
-    void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader() throws Exception {
+    void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader()  {
         String stringContent = "{\"source\":\"www.site1.ru\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123,32\"}";
 
         webTestClient

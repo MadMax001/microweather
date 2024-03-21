@@ -26,7 +26,7 @@ public class TestResponseBuilder implements TestBuilder<ConversionResponse> {
     public ConversionResponse build() {
         var response = new ConversionResponseX();
         response.setFrom(from);
-        response.setTo(to);;
+        response.setTo(to);
         response.setRate(rate);
         response.setAmount(amount);
         response.setSource(source);

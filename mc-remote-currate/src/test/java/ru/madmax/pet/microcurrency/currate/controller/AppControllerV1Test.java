@@ -84,11 +84,10 @@ class AppControllerV1Test {
     @Test
     void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader() throws Exception {
         var response = TestResponseBuilder.aResponse().build();
-        String responseString = objectMapper.writeValueAsString(response);
         when(currencyService.getRateMono(any())).thenReturn(Mono.just(response));
         String stringContent = "{\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123,32\"}";
 
-        var receivedContent = webTestClient
+        webTestClient
                 .post()
                 .uri("/api/v1/convert")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -247,7 +246,7 @@ class AppControllerV1Test {
         when(currencyService.getRateMono(any())).thenThrow(error);
         String stringContent = objectMapper.writeValueAsString(TestCurrencyRequestBuilder.aRequest().build());
 
-        var receivedContent = webTestClient
+        webTestClient
                 .post()
                 .uri("/api/v1/convert")
                 .contentType(MediaType.APPLICATION_JSON)

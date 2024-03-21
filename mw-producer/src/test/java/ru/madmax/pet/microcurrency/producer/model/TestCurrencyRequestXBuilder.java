@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
 import ru.madmax.pet.microweather.common.model.Currency;
-import ru.madmax.pet.microweather.common.model.CurrencyRequest;
 import ru.madmax.pet.microweather.common.model.TestBuilder;
 
 import java.math.BigDecimal;
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor(staticName = "aRequest")
 @With
 public class TestCurrencyRequestXBuilder implements TestBuilder<CurrencyRequestX> {
-    private Currency baseCurrency = Currency.RUB;;
+    private Currency baseCurrency = Currency.RUB;
     private Currency convertCurrency = Currency.USD;
     private BigDecimal baseAmount = new BigDecimal(50000);
     private String source = "first";

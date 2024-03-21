@@ -77,7 +77,7 @@ class CurrateCurrencyReactServiceTest {
     }
 
     @Test
-    void requestCurrency_AndCheckRequestWithHeader_AndCheckResponse() throws JsonProcessingException, InterruptedException, IllegalAmountException, IllegalRateException {
+    void requestCurrency_AndCheckRequestWithHeader_AndCheckResponse() throws InterruptedException, IllegalAmountException, IllegalRateException {
         final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
         final String responseStr = "{\"status\":200,\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
         when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
@@ -275,7 +275,7 @@ class CurrateCurrencyReactServiceTest {
 
 
     @Test
-    void whenServerIsUnavailableOnce_AndAnswerAfterOneRetry_CheckRetry() throws JsonProcessingException, InterruptedException, IllegalAmountException, IllegalRateException {
+    void whenServerIsUnavailableOnce_AndAnswerAfterOneRetry_CheckRetry() throws InterruptedException, IllegalAmountException, IllegalRateException {
         final String responseStr = " {\"status\":\"200\",\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
         final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
         when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
@@ -305,7 +305,7 @@ class CurrateCurrencyReactServiceTest {
     }
 
     @Test
-    void firstServerAnswerAfterTimeout_AndSecondAnswerInTime_CheckRetry() throws JsonProcessingException, InterruptedException, IllegalAmountException, IllegalRateException {
+    void firstServerAnswerAfterTimeout_AndSecondAnswerInTime_CheckRetry() throws InterruptedException, IllegalAmountException, IllegalRateException {
         final String responseStr = " {\"status\":\"200\",\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
         final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
         when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
@@ -336,7 +336,7 @@ class CurrateCurrencyReactServiceTest {
     }
 
     @Test
-    void whenServerIsUnavailable2Times_AndAnswerAfterOneRetry_CheckRetry_MaxRetryAttemptsExceed() throws JsonProcessingException, InterruptedException {
+    void whenServerIsUnavailable2Times_AndAnswerAfterOneRetry_CheckRetry_MaxRetryAttemptsExceed() throws InterruptedException {
         final String responseStr = " {\"status\":\"200\",\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
 
         remoteMockServer.enqueue(new MockResponse()

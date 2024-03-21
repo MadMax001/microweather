@@ -42,14 +42,12 @@ import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServices
 import ru.madmax.pet.microcurrency.producer.controller.ExceptionHandlerController;
 import ru.madmax.pet.microcurrency.producer.controller.ProducerControllerV1;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microcurrency.producer.model.RequestDTO;
 import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
 import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.*;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
 import ru.madmax.pet.microweather.common.model.*;
-import ru.madmax.pet.microcurrency.producer.model.TestRequestDTOBuilder;
 import ru.madmax.pet.microcurrency.producer.service.kafka.CurrencyKafkaSenderServiceViaConsumerFactoryConfiguration;
 
 import java.io.IOException;
