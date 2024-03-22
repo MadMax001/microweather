@@ -15,7 +15,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
@@ -68,7 +67,7 @@ class CurrencyKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendWeatherMessageToProducer_AndConsumerGetMessage() throws InterruptedException, JsonProcessingException {
-        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))
@@ -98,13 +97,13 @@ class CurrencyKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendTwoWeatherMessagesToProducerOneAfterAnother_andConsumerGetTwoMessages() throws InterruptedException, JsonProcessingException {
-        final RemoteConversionResponse response1 = TestResponseBuilder.aResponse().withFrom(Currency.RUB).build();
+        final Conversion response1 = TestConversionBuilder.aConversion().withBase(Currency.RUB).build();
         final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response1))
                 .build();
 
-        final RemoteConversionResponse response2 = TestResponseBuilder.aResponse().withFrom(Currency.USD).build();
+        final Conversion response2 = TestConversionBuilder.aConversion().withBase(Currency.RUB).build();
         final MessageDTO messageDTO2 = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response2))
@@ -158,7 +157,7 @@ class CurrencyKafkaSenderServiceViaKafkaListenerAnnotationTest {
                 logService,
                 successSendingHandler,
                 errorSendingHandler);
-        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))
@@ -178,13 +177,13 @@ class CurrencyKafkaSenderServiceViaKafkaListenerAnnotationTest {
 
     @Test
     void sendTwoWeatherMessagesWitSameKeysToProducer_andConsumeTwoMessagesInSameOrder() throws InterruptedException, JsonProcessingException {
-        final RemoteConversionResponse response1 = TestResponseBuilder.aResponse().withAmount(BigDecimal.ONE).build();
+        final Conversion response1 = TestConversionBuilder.aConversion().withBaseAmount(BigDecimal.ONE).build();
         final MessageDTO messageDTO1 = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response1))
                 .build();
 
-        final RemoteConversionResponse response2 = TestResponseBuilder.aResponse().withAmount(BigDecimal.TEN).build();
+        final Conversion response2 = TestConversionBuilder.aConversion().withBaseAmount(BigDecimal.TEN).build();
         final MessageDTO messageDTO2 = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response2))

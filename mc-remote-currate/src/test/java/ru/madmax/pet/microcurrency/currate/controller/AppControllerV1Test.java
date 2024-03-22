@@ -13,9 +13,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
-import ru.madmax.pet.microcurrency.currate.model.TestRemoteResponseBuilder;
 import ru.madmax.pet.microcurrency.currate.service.CurrencyService;
-import ru.madmax.pet.microweather.common.model.TestClientRequestBuilder;
+import ru.madmax.pet.microweather.common.model.TestServiceRequestBuilder;
 import ru.madmax.pet.microweather.common.model.TestConversionBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +39,7 @@ class AppControllerV1Test {
         String conversionString = objectMapper.writeValueAsString(conversion);
         when(currencyService.getRateMono(any())).thenReturn(Mono.just(conversion));
 
-        String stringContent = objectMapper.writeValueAsString(TestClientRequestBuilder.aRequest().build());
+        String stringContent = objectMapper.writeValueAsString(TestServiceRequestBuilder.aRequest().build());
 
         var receivedContent = webTestClient
                 .post()
@@ -248,7 +247,7 @@ class AppControllerV1Test {
     void currencyRequest_AndInternalExceptionOccurres_AndGet500Status_WithDetailsHeaders() throws JsonProcessingException {
         Throwable error = new IllegalModelStructureException("test exception", "presentation");
         when(currencyService.getRateMono(any())).thenThrow(error);
-        String stringContent = objectMapper.writeValueAsString(TestClientRequestBuilder.aRequest().build());
+        String stringContent = objectMapper.writeValueAsString(TestServiceRequestBuilder.aRequest().build());
 
         webTestClient
                 .post()

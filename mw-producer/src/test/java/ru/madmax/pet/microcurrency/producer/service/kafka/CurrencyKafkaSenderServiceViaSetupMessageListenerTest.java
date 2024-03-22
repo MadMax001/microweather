@@ -18,7 +18,6 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microweather.common.model.*;
 
@@ -76,7 +75,7 @@ class CurrencyKafkaSenderServiceViaSetupMessageListenerTest {
 
     @Test
     void sendWeatherMessageToProducer() throws InterruptedException, JsonProcessingException {
-        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))

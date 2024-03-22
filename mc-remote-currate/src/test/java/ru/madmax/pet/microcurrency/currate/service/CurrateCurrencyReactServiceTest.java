@@ -74,7 +74,7 @@ class CurrateCurrencyReactServiceTest {
 
     @Test
     void requestCurrency_AndCheckRequestWithHeader_AndCheckResponse() throws InterruptedException, IllegalAmountException, IllegalRateException {
-        final ServiceRequest request = TestClientRequestBuilder.aRequest()
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest()
                 .withBaseCurrency(Currency.RUB)
                 .withConvertCurrency(Currency.USD)
                 .withBaseAmount(new BigDecimal(10000))
@@ -118,7 +118,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringContent));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -137,7 +137,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -157,7 +157,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -177,7 +177,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -197,7 +197,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -217,7 +217,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -236,7 +236,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -254,7 +254,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -272,7 +272,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -304,7 +304,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -343,7 +343,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr).setBodyDelay(200, TimeUnit.MILLISECONDS));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
@@ -373,7 +373,7 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)

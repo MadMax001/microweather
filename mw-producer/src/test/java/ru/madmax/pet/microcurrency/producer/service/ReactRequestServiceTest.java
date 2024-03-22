@@ -28,10 +28,7 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
-import ru.madmax.pet.microcurrency.producer.model.RemoteConversionResponseX;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
-import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
-import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
@@ -88,13 +85,13 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final RemoteConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final String stringRequestContent = objectMapper.writeValueAsString(serviceRequest);
 
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
@@ -104,7 +101,7 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<RemoteConversionResponseX> responseMono = loaderService.sendRequest(serviceRequest, params);
+        Mono<Conversion> responseMono = loaderService.sendRequest(serviceRequest, params);
 
         StepVerifier.create(responseMono)
                 .expectNext(response)
@@ -135,7 +132,7 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final RemoteConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -143,7 +140,7 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final String stringRequestContent = objectMapper.writeValueAsString(serviceRequest);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
@@ -152,7 +149,7 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<RemoteConversionResponseX> responseMono = loaderService.sendRequest(serviceRequest, params);
+        Mono<Conversion> responseMono = loaderService.sendRequest(serviceRequest, params);
 
         StepVerifier.create(responseMono)
                 .expectNext(response)
@@ -192,7 +189,7 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final RemoteConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final String stringResponseContent = objectMapper.writeValueAsString(response);
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -202,7 +199,7 @@ class ReactRequestServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringResponseContent));
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final String stringRequestContent = objectMapper.writeValueAsString(serviceRequest);
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
@@ -211,7 +208,7 @@ class ReactRequestServiceTest {
                 .url(url)
                 .build();
 
-        Mono<RemoteConversionResponseX> responseMono = loaderService.sendRequest(serviceRequest, params);
+        Mono<Conversion> responseMono = loaderService.sendRequest(serviceRequest, params);
         StepVerifier.create(responseMono)
                 .expectErrorMatches(
                         throwable -> throwable.getClass().toString().contains("RetryExhaustedException") &&
@@ -272,7 +269,7 @@ class ReactRequestServiceTest {
         };
         remoteMockServer.setDispatcher(dispatcher);
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -319,7 +316,7 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -356,7 +353,7 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final RemoteConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final String stringResponseContent = objectMapper.writeValueAsString(response);
 
         Dispatcher dispatcher = new Dispatcher() {
@@ -377,7 +374,7 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()
@@ -409,7 +406,7 @@ class ReactRequestServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        final RemoteConversionResponseX response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final String stringResponseContent = objectMapper.writeValueAsString(response);
 
         Dispatcher dispatcher = new Dispatcher() {
@@ -430,7 +427,7 @@ class ReactRequestServiceTest {
 
         remoteMockServer.setDispatcher(dispatcher);
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final ServiceRequest serviceRequest = TestServiceRequestBuilder.aRequest().build();
         final URL url = new URL(remoteMockServer.url("/test-path").toString());
         final RequestParams params = RequestParams
                 .builder()

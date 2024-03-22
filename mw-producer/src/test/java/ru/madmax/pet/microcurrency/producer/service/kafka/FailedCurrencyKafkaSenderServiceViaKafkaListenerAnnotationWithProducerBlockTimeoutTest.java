@@ -14,7 +14,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microweather.common.model.*;
@@ -56,7 +55,7 @@ class FailedCurrencyKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBloc
     @Test
     void sendWeatherMessageToProducer_AndProducerBlockVeryLong_AndThrowAppProducerException()
             throws JsonProcessingException, InterruptedException {
-        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
+        final Conversion response = TestConversionBuilder.aConversion().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))

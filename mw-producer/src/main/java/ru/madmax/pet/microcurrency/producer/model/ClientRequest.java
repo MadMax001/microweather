@@ -1,8 +1,9 @@
-package ru.madmax.pet.microweather.common.model;
+package ru.madmax.pet.microcurrency.producer.model;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import ru.madmax.pet.microweather.common.model.ServiceRequest;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

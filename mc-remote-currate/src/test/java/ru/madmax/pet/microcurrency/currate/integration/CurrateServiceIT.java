@@ -67,7 +67,7 @@ class CurrateServiceIT {
 
     @Test
     void requestCurrency_happyPass_CheckResponseAndHeaders() throws JsonProcessingException {
-        final ServiceRequest request = TestClientRequestBuilder.aRequest()
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest()
                 .withBaseCurrency(Currency.RUB)
                 .withConvertCurrency(Currency.USD)
                 .withBaseAmount(new BigDecimal(10000))
@@ -108,7 +108,7 @@ class CurrateServiceIT {
 
     @Test
     void requestCurrency_ButRemoteServiceNotResponseDuringTimeoutValue_AndCheck500StatusAndErrorHeader() throws JsonProcessingException {
-        final ServiceRequest request = TestClientRequestBuilder.aRequest()
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest()
                 .withBaseCurrency(Currency.RUB)
                 .withConvertCurrency(Currency.USD)
                 .withBaseAmount(new BigDecimal(10000))
@@ -172,7 +172,7 @@ class CurrateServiceIT {
             throws JsonProcessingException {
         final String stringContent = "5555555";
 
-        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        final ServiceRequest request = TestServiceRequestBuilder.aRequest().build();
         final String stringPoint = objectMapper.writeValueAsString(request);
 
         setMockResponseFromServer(500, stringContent);

@@ -13,8 +13,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
+import ru.madmax.pet.microcurrency.producer.model.TestClientRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyService;
+import ru.madmax.pet.microcurrency.producer.model.ClientRequest;
+import ru.madmax.pet.microweather.common.model.TestServiceRequestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -37,9 +39,9 @@ class ProducerControllerV1Test {
 
     @Test
     void currencyCorrectRequest_AndCheckAnswerAndHeader() throws JsonProcessingException {
-        var request = TestCurrencyRequestXBuilder.aRequest().build();
+        var request = TestClientRequestBuilder.aRequest().build();
         String requestStr = objectMapper.writeValueAsString(request);
-        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.just("test-guid"));
+        when(currencyService.registerRequest(any(ClientRequest.class))).thenReturn(Mono.just("test-guid"));
 
         var receivedContent = webTestClient
                 .post()
@@ -77,7 +79,7 @@ class ProducerControllerV1Test {
     @Test
     void currencyCorrectRequest_WithFloatAmount_WithPointSeparation_AndCheckAnswerAndHeader() {
         String stringContent = "{\"source\":\"www.site1.ru\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123.32\"}";
-        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.just("test-guid"));
+        when(currencyService.registerRequest(any(ClientRequest.class))).thenReturn(Mono.just("test-guid"));
 
         var receivedContent = webTestClient
                 .post()
@@ -248,8 +250,8 @@ class ProducerControllerV1Test {
     @Test
     void currencyRequest_AndInternalExceptionOccurres_AndGet500Status_WithDetailsHeaders() throws JsonProcessingException {
         Throwable error = new RemoteServiceException("test exception");
-        when(currencyService.registerRequest(any(ClientRequestX.class))).thenThrow(error);
-        String stringContent = objectMapper.writeValueAsString(TestCurrencyRequestXBuilder.aRequest().build());
+        when(currencyService.registerRequest(any(ClientRequest.class))).thenThrow(error);
+        String stringContent = objectMapper.writeValueAsString(TestClientRequestBuilder.aRequest().build());
 
         webTestClient
                 .post()
@@ -267,10 +269,10 @@ class ProducerControllerV1Test {
 
     @Test
     void weatherRequest_andThrowsErrorInMono_AndGet500Status_andCheckHeaders() throws JsonProcessingException {
-        var request = TestCurrencyRequestXBuilder.aRequest().build();
+        var request = TestClientRequestBuilder.aRequest().build();
         String requestStr = objectMapper.writeValueAsString(request);
         Throwable error = new RuntimeException("Test error");
-        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.error(error));
+        when(currencyService.registerRequest(any(ClientRequest.class))).thenReturn(Mono.error(error));
 
         webTestClient
                 .post()

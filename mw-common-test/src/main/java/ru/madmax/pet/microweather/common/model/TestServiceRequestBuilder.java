@@ -1,29 +1,25 @@
-package ru.madmax.pet.microcurrency.producer.model;
+package ru.madmax.pet.microweather.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.madmax.pet.microweather.common.model.Currency;
-import ru.madmax.pet.microweather.common.model.TestBuilder;
 
 import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aRequest")
 @With
-public class TestCurrencyRequestXBuilder implements TestBuilder<ClientRequestX> {
+public class TestServiceRequestBuilder implements TestBuilder<ServiceRequest> {
     private Currency baseCurrency = Currency.RUB;
     private Currency convertCurrency = Currency.USD;
     private BigDecimal baseAmount = new BigDecimal(50000);
-    private String source = "first";
 
     @Override
-    public ClientRequestX build() {
-        var request = new ClientRequestX();
+    public ServiceRequest build() {
+        var request = new ServiceRequest();
         request.setBaseCurrency(baseCurrency);
         request.setConvertCurrency(convertCurrency);
         request.setBaseAmount(baseAmount);
-        request.setSource(source);
         return request;
     }
 }

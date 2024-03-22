@@ -42,8 +42,8 @@ import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServices
 import ru.madmax.pet.microcurrency.producer.controller.ExceptionHandlerController;
 import ru.madmax.pet.microcurrency.producer.controller.ProducerControllerV1;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
-import ru.madmax.pet.microcurrency.producer.model.TestResponseBuilder;
+import ru.madmax.pet.microcurrency.producer.model.ClientRequest;
+import ru.madmax.pet.microcurrency.producer.model.TestClientRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.service.*;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
@@ -146,10 +146,10 @@ class ProducerServiceWithMockedProducerIT {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
-        String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
+        String responseContent = "{\"base\":\"RUB\",\"convert\":\"USD\",\"baseAmount\":50000,\"conversionAmount\":779.0298,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
 
         var receivedResponseEntityContent = webTestClient
@@ -192,8 +192,8 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -243,10 +243,10 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         final String responseString = objectMapper.writeValueAsString(response);
 
         remoteMockServer.enqueue(new MockResponse()
@@ -362,8 +362,8 @@ class ProducerServiceWithMockedProducerIT {
         Throwable error = new KafkaException("Mock kafka error!");
         doThrow(error).when(kafkaTemplate).send(anyString(), anyString(), any(MessageDTO.class));
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
         String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
@@ -400,8 +400,8 @@ class ProducerServiceWithMockedProducerIT {
             throws JsonProcessingException, InterruptedException {
         var objectMapper = new ObjectMapper();
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
         String remoteServiceResponseContent = "__{bad structure}";
 
@@ -460,7 +460,7 @@ class ProducerServiceWithMockedProducerIT {
 
         ServiceRequest[] requests = new ServiceRequest[concurrency];
         for (int i = 0; i < concurrency; i++)
-            requests[i] = TestCurrencyRequestXBuilder.aRequest()
+            requests[i] = TestClientRequestBuilder.aRequest()
                     .withSource("first")
                     .withBaseAmount(new BigDecimal(i + 1))
                     .build();
@@ -475,8 +475,8 @@ class ProducerServiceWithMockedProducerIT {
                     try {
                         var response = new MockResponse();
                         response.addHeader("Content-Type", MediaType.APPLICATION_JSON);
-                        var currencyResponse = TestResponseBuilder.aResponse()
-                                .withAmount(new BigDecimal(System.currentTimeMillis()))
+                        var currencyResponse = TestConversionBuilder.aConversion()
+                                .withBaseAmount(new BigDecimal(System.currentTimeMillis()))
                                 .build();
                         String responseContentString = objectMapper.writeValueAsString(currencyResponse);
 
@@ -547,8 +547,8 @@ class ProducerServiceWithMockedProducerIT {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
+        final ClientRequest clientRequest = TestClientRequestBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(clientRequest);
 
         String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(1200, responseContent);

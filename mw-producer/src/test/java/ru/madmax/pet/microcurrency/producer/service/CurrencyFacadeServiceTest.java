@@ -86,14 +86,14 @@ class CurrencyFacadeServiceTest {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(response));
 
         doNothing().when(producerService).produceMessage(any(), any());
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
 
         Mono<String> keyMono = currencyFacadeService.registerRequest(request);
         StepVerifier.create(keyMono)
@@ -108,19 +108,19 @@ class CurrencyFacadeServiceTest {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withMessage(objectMapper.writeValueAsString(response))
                 .build();
 
-        when(requestService.sendRequest(any(ClientRequestX.class), any(RequestParams.class)))
+        when(requestService.sendRequest(any(ClientRequest.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(response));
         doNothing().when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
 
         currencyFacadeService.registerRequest(request).block();
 
@@ -168,7 +168,7 @@ class CurrencyFacadeServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
         currencyFacadeService.registerRequest(request).block();
 
         verify(requestService, times(1)).sendRequest(requestCaptor.capture(), requestParamsCaptor.capture());
@@ -197,7 +197,7 @@ class CurrencyFacadeServiceTest {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(response));
 
         RuntimeException appError = new AppProducerException("Test-error");
@@ -205,7 +205,7 @@ class CurrencyFacadeServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
         Mono<String> keyMono = currencyFacadeService.registerRequest(request);
 
         StepVerifier.create(keyMono)
@@ -220,7 +220,7 @@ class CurrencyFacadeServiceTest {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         when(requestService.sendRequest(any(), any())).thenReturn(Mono.just(response));
 
         RuntimeException appError = new AppProducerException("Test-error");
@@ -228,7 +228,7 @@ class CurrencyFacadeServiceTest {
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
         currencyFacadeService.registerRequest(request).block();
 
         verify(requestService, times(1)).sendRequest(requestCaptor.capture(), requestParamsCaptor.capture());
@@ -258,7 +258,7 @@ class CurrencyFacadeServiceTest {
         final String guid = "test-guid-1";
         when(uuidGeneratorService.randomGenerate()).thenReturn(guid);
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         when(requestService.sendRequest(any(ServiceRequest.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(response).delayElement(Duration.ofSeconds(1)));
 
@@ -271,7 +271,7 @@ class CurrencyFacadeServiceTest {
             return null;
         }).when(producerService).produceMessage(eq(guid), any(MessageDTO.class));
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
         currencyFacadeService.registerRequest(request);
 
         var returnFacadeMethodTime = System.nanoTime();
@@ -287,14 +287,14 @@ class CurrencyFacadeServiceTest {
         doAnswer(AdditionalAnswers.answersWithDelay(1000, invocation -> guid))
                 .when(uuidGeneratorService).randomGenerate();
 
-        var response = TestResponseBuilder.aResponse().build();
+        var response = TestConversionBuilder.aConversion().build();
         when(requestService.sendRequest(any(ServiceRequest.class), any(RequestParams.class)))
                 .thenReturn(Mono.just(response));
 
         doNothing().when(logService).info(anyString(), anyString());
         doNothing().when(logService).error(anyString(), anyString());
 
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().build();
 
         long startTime = System.nanoTime();
         Mono<String> keyMono = currencyFacadeService.registerRequest(request);
@@ -308,7 +308,7 @@ class CurrencyFacadeServiceTest {
 
     @Test
     void sendRequest_WithWrongSource_AndThrowsWrongSourceException() {
-        ClientRequestX request = TestCurrencyRequestXBuilder.aRequest().withSource("wrong-source").build();
+        ClientRequest request = TestClientRequestBuilder.aRequest().withSource("wrong-source").build();
         when(uuidGeneratorService.randomGenerate()).thenReturn("guid");
 
         var mono = currencyFacadeService.registerRequest(request);
