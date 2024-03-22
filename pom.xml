@@ -18,7 +18,6 @@
         <module>mw-common</module>
         <module>mw-common-test</module>
         <module>mw-producer</module>
-        <module>mw-yandex-weather</module>
         <module>mw-consumer-db</module>
         <module>mc-remote-currate</module>
     </modules>
