@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -11,12 +12,13 @@ import reactor.util.retry.Retry;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalRateException;
-import ru.madmax.pet.microweather.common.model.ConversionRequest;
-import ru.madmax.pet.microweather.common.model.ConversionResponse;
-import ru.madmax.pet.microcurrency.currate.model.ConversionResponseX;
+import ru.madmax.pet.microcurrency.currate.model.RemoteResponse;
+import ru.madmax.pet.microweather.common.model.ServiceRequest;
+import ru.madmax.pet.microweather.common.model.Conversion;
 
 import java.time.Duration;
 
+@Service
 public class CurrateCurrencyService implements CurrencyService {
     private final WebClient webClient;
     private final ConversionService conversionService;
@@ -51,35 +53,41 @@ public class CurrateCurrencyService implements CurrencyService {
 
 
     @Override
-    public Mono<ConversionResponse> getRateMono(ConversionRequest request) {
+    public Mono<Conversion> getRateMono(final ServiceRequest request) {
         return webClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(remotePath)
                         .queryParam("get", "rates")
-                        .queryParam("pair", getCurrencyPairParamFromConversionRequest(request))
+                        .queryParam("pair", getCurrencyPairParamFromRequest(request))
                         .queryParam("key", remoteAccessKey)
                         .build())
                 .retrieve()
                 .bodyToMono(String.class)
-                .flatMap(str -> {
-                    try {
-                        var response = (ConversionResponse)objectMapper.readValue(str, ConversionResponseX.class);
-                        response.setSource(remoteHost);
-                        response.setAmount(conversionService.covert(
-                                request.getAmount(), response.getRate()
-                        ));
-                        return Mono.just(response);
-                    } catch (JsonProcessingException | IllegalRateException | IllegalAmountException e) {
-                        throw new IllegalModelStructureException(e.getMessage(), str);
-                    }
-                })
+                .flatMap(str -> Mono.just(createConversionFromResponse(str, request)))
                 .retryWhen(Retry.backoff(requestRetryAttempts, Duration.ofMillis(requestRetryDuration))
                         .filter(throwable -> !(throwable instanceof IllegalModelStructureException)));
     }
 
-    private String getCurrencyPairParamFromConversionRequest(ConversionRequest request) {
-        return request.getConvert().name() + request.getBase().name();
+    private Conversion createConversionFromResponse(String str, ServiceRequest request) {
+        try {
+            var remoteResponse = objectMapper.readValue(str, RemoteResponse.class);
+            var conversion = new Conversion();
+            conversion.setBase(request.getBaseCurrency());
+            conversion.setConvert(request.getConvertCurrency());
+            conversion.setBaseAmount(request.getBaseAmount());
+            conversion.setConversionAmount(conversionService.covert(
+                    request.getBaseAmount(), remoteResponse.getRate())
+            );
+            conversion.setSource(remoteHost);
+            return conversion;
+        } catch (JsonProcessingException | IllegalRateException | IllegalAmountException e) {
+            throw new IllegalModelStructureException(e.getMessage(), str);
+        }
+    }
+
+    private String getCurrencyPairParamFromRequest(ServiceRequest request) {
+        return request.getConvertCurrency().name() + request.getBaseCurrency().name();
     }
 
 }

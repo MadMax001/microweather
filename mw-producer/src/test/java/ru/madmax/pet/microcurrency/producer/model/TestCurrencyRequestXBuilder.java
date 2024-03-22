@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aRequest")
 @With
-public class TestCurrencyRequestXBuilder implements TestBuilder<CurrencyRequestX> {
+public class TestCurrencyRequestXBuilder implements TestBuilder<ClientRequestX> {
     private Currency baseCurrency = Currency.RUB;
     private Currency convertCurrency = Currency.USD;
     private BigDecimal baseAmount = new BigDecimal(50000);
     private String source = "first";
 
     @Override
-    public CurrencyRequestX build() {
-        var request = new CurrencyRequestX();
+    public ClientRequestX build() {
+        var request = new ClientRequestX();
         request.setBaseCurrency(baseCurrency);
         request.setConvertCurrency(convertCurrency);
         request.setBaseAmount(baseAmount);

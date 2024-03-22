@@ -56,7 +56,7 @@ class FailedCurrencyKafkaSenderServiceViaKafkaListenerAnnotationWithProducerBloc
     @Test
     void sendWeatherMessageToProducer_AndProducerBlockVeryLong_AndThrowAppProducerException()
             throws JsonProcessingException, InterruptedException {
-        final ConversionResponse response = TestResponseBuilder.aResponse().build();
+        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))

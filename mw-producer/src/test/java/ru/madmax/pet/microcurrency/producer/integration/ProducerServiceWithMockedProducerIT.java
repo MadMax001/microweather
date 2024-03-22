@@ -141,13 +141,13 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_happyPass_CheckResponseAndHeaders_AndCheckKafkaQueue_AndCountLogs()
+    void registerCurrencyRequest_happyPass_CheckResponseAndHeaders_AndCheckKafkaQueue_AndCountLogs()
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
@@ -188,12 +188,12 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_AndRemoteServiceIsAlways503Unavailable_CheckResponseAndHeader_AndCheckKafkaQueue_AndCountLogs()
+    void registerCurrencyRequest_AndRemoteServiceIsAlways503Unavailable_CheckResponseAndHeader_AndCheckKafkaQueue_AndCountLogs()
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -239,12 +239,12 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_AndRemoteServiceIsOnce503Unavailable_AndRetry_AndThenSuccessfulReturn_CheckResponseAndHeader_AndCheckKafkaQueue_AndCountLogs()
+    void registerCurrencyRequest_AndRemoteServiceIsOnce503Unavailable_AndRetry_AndThenSuccessfulReturn_CheckResponseAndHeader_AndCheckKafkaQueue_AndCountLogs()
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         var response = TestResponseBuilder.aResponse().build();
         final String responseString = objectMapper.writeValueAsString(response);
@@ -292,7 +292,7 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeatherWithWrongStructure_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
+    void registerCurrencyRequestWithWrongStructure_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
             throws  InterruptedException {
         records.clear();
         final String requestStr = "{\"source\":\"first\",\"Abase_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":50000}";
@@ -322,7 +322,7 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeatherWithWrongSource_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
+    void registerCurrencyRequestWithWrongSource_Check400ResponseAndHeader_AndCheckEmptyKafkaQueue_AndCountLogs()
             throws  InterruptedException {
         records.clear();
         final String requestStr = "{\"source\":\"farst\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":50000}";
@@ -354,7 +354,7 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_AndThrowsExceptionInBroker_AndCheckFor200Response_AndCheckEmptyKafkaMessage_AndCountLogs()
+    void registerCurrencyRequest_AndThrowsExceptionInBroker_AndCheckFor200Response_AndCheckEmptyKafkaMessage_AndCountLogs()
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
@@ -362,8 +362,8 @@ class ProducerServiceWithMockedProducerIT {
         Throwable error = new KafkaException("Mock kafka error!");
         doThrow(error).when(kafkaTemplate).send(anyString(), anyString(), any(MessageDTO.class));
 
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(500, responseContent);
@@ -396,12 +396,12 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_AndRemoteServerReturnWrongStructure_Check200ResponseAndHeaders_AndCheckKafkaQueue_AndCountLogs()
+    void registerCurrencyRequest_AndRemoteServerReturnWrongStructure_Check200ResponseAndHeaders_AndCheckKafkaQueue_AndCountLogs()
             throws JsonProcessingException, InterruptedException {
         var objectMapper = new ObjectMapper();
 
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         String remoteServiceResponseContent = "__{bad structure}";
 
@@ -450,7 +450,7 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeatherConcurrency_happyPass_CheckResponseAndHeaders_AndCheckKafkaQueue()
+    void registerCurrencyRequestConcurrency_happyPass_CheckResponseAndHeaders_AndCheckKafkaQueue()
             throws JsonProcessingException, InterruptedException {
         records.clear();
 
@@ -458,7 +458,7 @@ class ProducerServiceWithMockedProducerIT {
         int concurrency = 10;
 
 
-        CurrencyRequest[] requests = new CurrencyRequest[concurrency];
+        ServiceRequest[] requests = new ServiceRequest[concurrency];
         for (int i = 0; i < concurrency; i++)
             requests[i] = TestCurrencyRequestXBuilder.aRequest()
                     .withSource("first")
@@ -542,13 +542,13 @@ class ProducerServiceWithMockedProducerIT {
     }
 
     @Test
-    void registerWeather_WithDelayedRemoteResponseMoreThanTimeout_CheckResponseHeaders_AndCheckKafkaQueue()
+    void registerCurrencyRequest_WithDelayedRemoteResponseMoreThanTimeout_CheckResponseHeaders_AndCheckKafkaQueue()
             throws JsonProcessingException, InterruptedException {
         records.clear();
         var objectMapper = new ObjectMapper();
 
-        final CurrencyRequest currencyRequest = TestCurrencyRequestXBuilder.aRequest().build();
-        final String stringRequest = objectMapper.writeValueAsString(currencyRequest);
+        final ServiceRequest serviceRequest = TestCurrencyRequestXBuilder.aRequest().build();
+        final String stringRequest = objectMapper.writeValueAsString(serviceRequest);
 
         String responseContent = "{\"from\":\"USD\",\"to\":\"RUB\",\"rate\":64.1824,\"amount\":155.8060,\"source\":\"http://www.test.ru\"}";
         setMockResponseFromServer(1200, responseContent);

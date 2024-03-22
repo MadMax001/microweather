@@ -13,7 +13,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microcurrency.producer.model.CurrencyRequestX;
 import ru.madmax.pet.microcurrency.producer.model.TestCurrencyRequestXBuilder;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyService;
 
@@ -40,7 +39,7 @@ class ProducerControllerV1Test {
     void currencyCorrectRequest_AndCheckAnswerAndHeader() throws JsonProcessingException {
         var request = TestCurrencyRequestXBuilder.aRequest().build();
         String requestStr = objectMapper.writeValueAsString(request);
-        when(currencyService.registerRequest(any(CurrencyRequestX.class))).thenReturn(Mono.just("test-guid"));
+        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.just("test-guid"));
 
         var receivedContent = webTestClient
                 .post()
@@ -78,7 +77,7 @@ class ProducerControllerV1Test {
     @Test
     void currencyCorrectRequest_WithFloatAmount_WithPointSeparation_AndCheckAnswerAndHeader() {
         String stringContent = "{\"source\":\"www.site1.ru\",\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123.32\"}";
-        when(currencyService.registerRequest(any(CurrencyRequestX.class))).thenReturn(Mono.just("test-guid"));
+        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.just("test-guid"));
 
         var receivedContent = webTestClient
                 .post()
@@ -249,7 +248,7 @@ class ProducerControllerV1Test {
     @Test
     void currencyRequest_AndInternalExceptionOccurres_AndGet500Status_WithDetailsHeaders() throws JsonProcessingException {
         Throwable error = new RemoteServiceException("test exception");
-        when(currencyService.registerRequest(any(CurrencyRequestX.class))).thenThrow(error);
+        when(currencyService.registerRequest(any(ClientRequestX.class))).thenThrow(error);
         String stringContent = objectMapper.writeValueAsString(TestCurrencyRequestXBuilder.aRequest().build());
 
         webTestClient
@@ -271,7 +270,7 @@ class ProducerControllerV1Test {
         var request = TestCurrencyRequestXBuilder.aRequest().build();
         String requestStr = objectMapper.writeValueAsString(request);
         Throwable error = new RuntimeException("Test error");
-        when(currencyService.registerRequest(any(CurrencyRequestX.class))).thenReturn(Mono.error(error));
+        when(currencyService.registerRequest(any(ClientRequestX.class))).thenReturn(Mono.error(error));
 
         webTestClient
                 .post()

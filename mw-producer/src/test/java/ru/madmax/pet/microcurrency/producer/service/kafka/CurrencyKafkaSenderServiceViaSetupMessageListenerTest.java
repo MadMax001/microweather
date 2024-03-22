@@ -76,7 +76,7 @@ class CurrencyKafkaSenderServiceViaSetupMessageListenerTest {
 
     @Test
     void sendWeatherMessageToProducer() throws InterruptedException, JsonProcessingException {
-        final ConversionResponse response = TestResponseBuilder.aResponse().build();
+        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))

@@ -52,7 +52,7 @@ class CurrencyKafkaSenderServiceViaConsumerFactoryTest {
         ) {
             consumer.subscribe(Collections.singletonList(testTopic));
 
-            final ConversionResponse response = TestResponseBuilder.aResponse().build();
+            final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
             final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                     .withType(MessageType.CURRENCY)
                     .withMessage(objectMapper.writeValueAsString(response))

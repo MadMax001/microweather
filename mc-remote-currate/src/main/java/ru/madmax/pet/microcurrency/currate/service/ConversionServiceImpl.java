@@ -3,9 +3,11 @@ package ru.madmax.pet.microcurrency.currate.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import org.springframework.stereotype.Service;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalRateException;
 
+@Service
 public class ConversionServiceImpl implements ConversionService {
     private static final int SCALE = 4;
 

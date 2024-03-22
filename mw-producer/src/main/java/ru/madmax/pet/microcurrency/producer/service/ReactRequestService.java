@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microcurrency.producer.model.ConversionResponseX;
-import ru.madmax.pet.microweather.common.model.CurrencyRequest;
+import ru.madmax.pet.microcurrency.producer.model.RemoteConversionResponseX;
+import ru.madmax.pet.microweather.common.model.ServiceRequest;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 
 import java.time.Duration;
@@ -43,7 +43,7 @@ public class ReactRequestService implements CurrencyRequestService {
     }
 
     @Override
-    public Mono<ConversionResponseX> sendRequest(CurrencyRequest request, RequestParams params) {
+    public Mono<RemoteConversionResponseX> sendRequest(ServiceRequest request, RequestParams params) {
         logService.info(
                 params.getGuid(),
                 String.format("Send to %s", params.getUrl().toString()));
@@ -96,11 +96,11 @@ public class ReactRequestService implements CurrencyRequestService {
         );
     }
 
-    private Mono<ConversionResponseX> createSuccessMonoResponse(ClientResponse response) {
-        return response.bodyToMono(ConversionResponseX.class);
+    private Mono<RemoteConversionResponseX> createSuccessMonoResponse(ClientResponse response) {
+        return response.bodyToMono(RemoteConversionResponseX.class);
     }
 
-    private Mono<ConversionResponseX> createErrorMonoResponse(final ClientResponse response) {
+    private Mono<RemoteConversionResponseX> createErrorMonoResponse(final ClientResponse response) {
         List<String> requestErrorHeaderValues =
                 (response.headers().asHttpHeaders().get(HEADER_REQUEST_ERROR_KEY));
         if (requestErrorHeaderValues != null && !requestErrorHeaderValues.isEmpty()) {

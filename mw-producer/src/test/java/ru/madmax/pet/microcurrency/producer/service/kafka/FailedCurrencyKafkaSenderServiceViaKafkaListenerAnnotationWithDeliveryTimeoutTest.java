@@ -65,7 +65,7 @@ class FailedCurrencyKafkaSenderServiceViaKafkaListenerAnnotationWithDeliveryTime
     void sendWeatherMessageToProducer_AndProducerCantSendByTimeout_AndCheckOnFailedSection() throws InterruptedException, JsonProcessingException {
         doNothing().when(logService).error(anyString(),anyString());
 
-        final ConversionResponse response = TestResponseBuilder.aResponse().build();
+        final RemoteConversionResponse response = TestResponseBuilder.aResponse().build();
         final MessageDTO messageDTO = TestMessageDTOBuilder.aMessageDTO()
                 .withType(MessageType.CURRENCY)
                 .withMessage(objectMapper.writeValueAsString(response))

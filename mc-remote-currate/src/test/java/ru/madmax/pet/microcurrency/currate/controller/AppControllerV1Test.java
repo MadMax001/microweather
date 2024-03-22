@@ -13,9 +13,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
-import ru.madmax.pet.microcurrency.currate.model.TestCurrencyRequestBuilder;
-import ru.madmax.pet.microcurrency.currate.model.TestResponseBuilder;
+import ru.madmax.pet.microcurrency.currate.model.TestRemoteResponseBuilder;
 import ru.madmax.pet.microcurrency.currate.service.CurrencyService;
+import ru.madmax.pet.microweather.common.model.TestClientRequestBuilder;
+import ru.madmax.pet.microweather.common.model.TestConversionBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -35,10 +36,11 @@ class AppControllerV1Test {
 
     @Test
     void currencyCorrectRequest_AndCheckAnswerAndHeader() throws Exception {
-        var response = TestResponseBuilder.aResponse().build();
-        String responseString = objectMapper.writeValueAsString(response);
-        when(currencyService.getRateMono(any())).thenReturn(Mono.just(response));
-        String stringContent = objectMapper.writeValueAsString(TestCurrencyRequestBuilder.aRequest().build());
+        var conversion = TestConversionBuilder.aConversion().build();
+        String conversionString = objectMapper.writeValueAsString(conversion);
+        when(currencyService.getRateMono(any())).thenReturn(Mono.just(conversion));
+
+        String stringContent = objectMapper.writeValueAsString(TestClientRequestBuilder.aRequest().build());
 
         var receivedContent = webTestClient
                 .post()
@@ -54,14 +56,15 @@ class AppControllerV1Test {
                 .getResponseBody()
                 .blockFirst();
 
-        assertThat(receivedContent).isEqualTo(responseString);
+        assertThat(receivedContent).isEqualTo(conversionString);
     }
 
     @Test
     void currencyCorrectRequest_WithFloatAmount_WithPointSeparation_AndCheckAnswerAndHeader() throws Exception {
-        var response = TestResponseBuilder.aResponse().build();
-        String responseString = objectMapper.writeValueAsString(response);
-        when(currencyService.getRateMono(any())).thenReturn(Mono.just(response));
+        var conversion = TestConversionBuilder.aConversion().build();
+        String conversionString = objectMapper.writeValueAsString(conversion);
+        when(currencyService.getRateMono(any())).thenReturn(Mono.just(conversion));
+
         String stringContent = "{\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123.32\"}";
 
         var receivedContent = webTestClient
@@ -78,13 +81,14 @@ class AppControllerV1Test {
                 .getResponseBody()
                 .blockFirst();
 
-        assertThat(receivedContent).isEqualTo(responseString);
+        assertThat(receivedContent).isEqualTo(conversionString);
     }
 
     @Test
     void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader() throws Exception {
-        var response = TestResponseBuilder.aResponse().build();
-        when(currencyService.getRateMono(any())).thenReturn(Mono.just(response));
+        var conversion = TestConversionBuilder.aConversion().build();
+        when(currencyService.getRateMono(any())).thenReturn(Mono.just(conversion));
+
         String stringContent = "{\"base_currency\":\"RUB\",\"convert_currency\":\"USD\",\"base_amount\":\"123,32\"}";
 
         webTestClient
@@ -244,7 +248,7 @@ class AppControllerV1Test {
     void currencyRequest_AndInternalExceptionOccurres_AndGet500Status_WithDetailsHeaders() throws JsonProcessingException {
         Throwable error = new IllegalModelStructureException("test exception", "presentation");
         when(currencyService.getRateMono(any())).thenThrow(error);
-        String stringContent = objectMapper.writeValueAsString(TestCurrencyRequestBuilder.aRequest().build());
+        String stringContent = objectMapper.writeValueAsString(TestClientRequestBuilder.aRequest().build());
 
         webTestClient
                 .post()

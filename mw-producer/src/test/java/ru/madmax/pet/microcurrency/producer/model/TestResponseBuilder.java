@@ -12,7 +12,7 @@ import java.math.RoundingMode;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aResponse")
 @With
-public class TestResponseBuilder implements TestBuilder<ConversionResponseX> {
+public class TestResponseBuilder implements TestBuilder<RemoteConversionResponseX> {
 
     private Currency from = Currency.USD;
     private Currency to = Currency.RUB;
@@ -21,8 +21,8 @@ public class TestResponseBuilder implements TestBuilder<ConversionResponseX> {
     private String source = "http://www.test.ru";
 
     @Override
-    public ConversionResponseX build() {
-        var response = new ConversionResponseX();
+    public RemoteConversionResponseX build() {
+        var response = new RemoteConversionResponseX();
         response.setFrom(from);
         response.setTo(to);
         response.setRate(rate);

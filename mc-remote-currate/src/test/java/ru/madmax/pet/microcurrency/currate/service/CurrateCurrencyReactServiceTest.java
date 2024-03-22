@@ -1,6 +1,5 @@
 package ru.madmax.pet.microcurrency.currate.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +24,7 @@ import ru.madmax.pet.microcurrency.currate.configuration.HttpClientConfiguration
 import ru.madmax.pet.microcurrency.currate.configuration.MainConfig;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalRateException;
-import ru.madmax.pet.microcurrency.currate.model.TestRequestBuilder;
-import ru.madmax.pet.microcurrency.currate.model.TestResponseBuilder;
-import ru.madmax.pet.microweather.common.model.ConversionRequest;
-import ru.madmax.pet.microweather.common.model.ConversionResponse;
+import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -78,25 +74,39 @@ class CurrateCurrencyReactServiceTest {
 
     @Test
     void requestCurrency_AndCheckRequestWithHeader_AndCheckResponse() throws InterruptedException, IllegalAmountException, IllegalRateException {
-        final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
+        final ServiceRequest request = TestClientRequestBuilder.aRequest()
+                .withBaseCurrency(Currency.RUB)
+                .withConvertCurrency(Currency.USD)
+                .withBaseAmount(new BigDecimal(10000))
+                .build();
+
+        var conversionResult = BigDecimal.ONE;
+        final Conversion conversion = TestConversionBuilder.aConversion()
+                .withSource(host)
+                .withBase(Currency.RUB)
+                .withConvert(Currency.USD)
+                .withBaseAmount(new BigDecimal(10000))
+                .withConvertAmount(conversionResult)
+                .build();
+
         final String responseStr = "{\"status\":200,\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
-        when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
+
+        when(conversionService.covert(any(), any())).thenReturn(conversionResult);
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
-                .expectNext(response)
+                .expectNext(conversion)
                 .expectComplete()
                 .verify();
 
         RecordedRequest mockRequest = remoteMockServer.takeRequest();
         assertThat(mockRequest.getMethod()).isEqualTo("GET");
         assertThat(mockRequest.getRequestLine()).contains(
-                request.getConvert() + request.getBase().name(),
+                request.getConvertCurrency().name() + request.getBaseCurrency().name(),
                 token);
     }
 
@@ -108,8 +118,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(stringContent));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -127,8 +137,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -147,8 +157,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -167,13 +177,13 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
                         throwable.getMessage().contains("Wrong status") &&
-                        throwable.getMessage().contains("null")
+                        throwable.getMessage().contains(responseStr)
                 )
                 .verify();
 
@@ -187,8 +197,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -207,8 +217,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -226,8 +236,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -244,8 +254,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -262,8 +272,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(throwable -> throwable.getClass().toString().contains("IllegalModelStructureException") &&
@@ -277,8 +287,16 @@ class CurrateCurrencyReactServiceTest {
     @Test
     void whenServerIsUnavailableOnce_AndAnswerAfterOneRetry_CheckRetry() throws InterruptedException, IllegalAmountException, IllegalRateException {
         final String responseStr = " {\"status\":\"200\",\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
-        final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
-        when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
+        var conversionResult = BigDecimal.ONE;
+        final Conversion conversion = TestConversionBuilder.aConversion()
+                .withSource(host)
+                .withBase(Currency.RUB)
+                .withConvert(Currency.USD)
+                .withBaseAmount(new BigDecimal(50000))
+                .withConvertAmount(conversionResult)
+                .build();
+
+        when(conversionService.covert(any(), any())).thenReturn(conversionResult);
 
         remoteMockServer.enqueue(new MockResponse()
                 .setResponseCode(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
@@ -286,11 +304,11 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
-                .expectNext(response)
+                .expectNext(conversion)
                 .expectComplete()
                 .verify();
 
@@ -298,7 +316,7 @@ class CurrateCurrencyReactServiceTest {
             RecordedRequest mockRequest = remoteMockServer.takeRequest();
             assertThat(mockRequest.getMethod()).isEqualTo("GET");
             assertThat(mockRequest.getRequestLine()).contains(
-                    request.getConvert() + request.getBase().name(),
+                    request.getConvertCurrency().name() + request.getBaseCurrency().name(),
                     token);
         }
 
@@ -307,8 +325,16 @@ class CurrateCurrencyReactServiceTest {
     @Test
     void firstServerAnswerAfterTimeout_AndSecondAnswerInTime_CheckRetry() throws InterruptedException, IllegalAmountException, IllegalRateException {
         final String responseStr = " {\"status\":\"200\",\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
-        final ConversionResponse response = TestResponseBuilder.aResponse().withSource(host).withAmount(BigDecimal.ONE).build();
-        when(conversionService.covert(any(), any())).thenReturn(BigDecimal.ONE);
+        var conversionResult = BigDecimal.ONE;
+        final Conversion conversion = TestConversionBuilder.aConversion()
+                .withSource(host)
+                .withBase(Currency.RUB)
+                .withConvert(Currency.USD)
+                .withBaseAmount(new BigDecimal(50000))
+                .withConvertAmount(conversionResult)
+                .build();
+
+        when(conversionService.covert(any(), any())).thenReturn(conversionResult);
 
         remoteMockServer.enqueue(new MockResponse()
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
@@ -317,11 +343,11 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr).setBodyDelay(200, TimeUnit.MILLISECONDS));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
-                .expectNext(response)
+                .expectNext(conversion)
                 .expectComplete()
                 .verify();
 
@@ -329,7 +355,7 @@ class CurrateCurrencyReactServiceTest {
             RecordedRequest mockRequest = remoteMockServer.takeRequest();
             assertThat(mockRequest.getMethod()).isEqualTo("GET");
             assertThat(mockRequest.getRequestLine()).contains(
-                    request.getConvert() + request.getBase().name(),
+                    request.getConvertCurrency().name() + request.getBaseCurrency().name(),
                     token);
         }
 
@@ -347,8 +373,8 @@ class CurrateCurrencyReactServiceTest {
                 .addHeader("Content-Type", MediaType.APPLICATION_JSON)
                 .setBody(responseStr));
 
-        final ConversionRequest request = TestRequestBuilder.aRequest().build();
-        Mono<ConversionResponse> responseMono = currencyService.getRateMono(request);
+        final ServiceRequest request = TestClientRequestBuilder.aRequest().build();
+        Mono<Conversion> responseMono = currencyService.getRateMono(request);
 
         StepVerifier.create(responseMono)
                 .expectErrorMatches(
@@ -361,7 +387,7 @@ class CurrateCurrencyReactServiceTest {
             RecordedRequest mockRequest = remoteMockServer.takeRequest();
             assertThat(mockRequest.getMethod()).isEqualTo("GET");
             assertThat(mockRequest.getRequestLine()).contains(
-                    request.getConvert() + request.getBase().name(),
+                    request.getConvertCurrency().name() + request.getBaseCurrency().name(),
                     token);
         }
     }

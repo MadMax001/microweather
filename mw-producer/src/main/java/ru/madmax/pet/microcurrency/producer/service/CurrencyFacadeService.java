@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
-import ru.madmax.pet.microcurrency.producer.model.CurrencyRequestX;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 import ru.madmax.pet.microweather.common.model.MessageDTO;
 import ru.madmax.pet.microweather.common.model.MessageType;
@@ -26,7 +25,7 @@ public class CurrencyFacadeService implements CurrencyService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<String> registerRequest(CurrencyRequestX request) {
+    public Mono<String> registerRequest(ClientRequestX request) {
         CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> {
             final String guid = uuidGeneratorService.randomGenerate();
             logService.info(
@@ -54,7 +53,7 @@ public class CurrencyFacadeService implements CurrencyService {
         return Mono.fromFuture(cf);
     }
 
-    private RequestParams buildRequestParams (String guid, CurrencyRequestX request) {
+    private RequestParams buildRequestParams (String guid, ClientRequestX request) {
         return RequestParams.builder()
                 .guid(guid)
                 .url(servicesBuilder.getURLByKey(request.getSource()))
