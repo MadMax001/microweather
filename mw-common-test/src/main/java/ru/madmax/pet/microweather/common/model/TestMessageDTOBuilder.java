@@ -8,7 +8,7 @@ import lombok.With;
 @NoArgsConstructor(staticName = "aMessageDTO")
 @With
 public class TestMessageDTOBuilder implements TestBuilder<MessageDTO>{
-    private MessageType type = MessageType.WEATHER;
+    private MessageType type = MessageType.CURRENCY;
     private String message = "";
 
 

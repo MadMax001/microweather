@@ -7,6 +7,7 @@ import lombok.With;
 @AllArgsConstructor
 @NoArgsConstructor(staticName = "aPoint")
 @With
+@Deprecated(forRemoval = true)
 public class TestPointBuilder implements TestBuilder<Point>{
     private Double lat = 51.534986;
     private Double lon = 46.001373;

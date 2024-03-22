@@ -10,6 +10,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Deprecated(forRemoval = true)
 public class Point {
     @NotNull(message = "Latitude is not set")
     private final Double lat;
