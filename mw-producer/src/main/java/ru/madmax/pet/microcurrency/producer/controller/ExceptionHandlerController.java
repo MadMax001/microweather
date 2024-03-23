@@ -13,7 +13,7 @@ import ru.madmax.pet.microcurrency.producer.exception.WrongSourceException;
 
 import java.util.stream.Collectors;
 
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
 
 @ControllerAdvice
 @RequiredArgsConstructor

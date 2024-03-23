@@ -13,8 +13,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
-import ru.madmax.pet.microweather.common.model.Conversion;
-import ru.madmax.pet.microweather.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.Conversion;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 
 import java.time.Duration;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
 
 @Service
 public class ReactRequestService implements CurrencyRequestService {

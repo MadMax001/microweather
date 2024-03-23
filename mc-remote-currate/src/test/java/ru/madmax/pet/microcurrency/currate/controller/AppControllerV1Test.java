@@ -14,15 +14,15 @@ import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
 import ru.madmax.pet.microcurrency.currate.service.CurrencyService;
-import ru.madmax.pet.microweather.common.model.TestServiceRequestBuilder;
-import ru.madmax.pet.microweather.common.model.TestConversionBuilder;
+import ru.madmax.pet.microcurrency.common.model.TestServiceRequestBuilder;
+import ru.madmax.pet.microcurrency.common.model.TestConversionBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
 
 @ActiveProfiles("test")
 @WebFluxTest(controllers = {AppControllerV1.class, ExceptionHandlerController.class})                   //аннотация автоматом конфигурит webTestClient
@@ -84,7 +84,7 @@ class AppControllerV1Test {
     }
 
     @Test
-    void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader() throws Exception {
+    void currencyCorrectRequest_WithFloatAmount_WithCommaSeparation_AndCheckAnswerAndHeader() {
         var conversion = TestConversionBuilder.aConversion().build();
         when(currencyService.getRateMono(any())).thenReturn(Mono.just(conversion));
 

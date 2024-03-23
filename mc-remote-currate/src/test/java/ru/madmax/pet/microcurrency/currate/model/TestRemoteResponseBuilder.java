@@ -3,8 +3,8 @@ package ru.madmax.pet.microcurrency.currate.model;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import ru.madmax.pet.microweather.common.model.Currency;
-import ru.madmax.pet.microweather.common.model.TestBuilder;
+import ru.madmax.pet.microcurrency.common.model.Currency;
+import ru.madmax.pet.microcurrency.common.model.TestBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

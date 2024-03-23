@@ -16,17 +16,15 @@ import ru.madmax.pet.microcurrency.producer.exception.RemoteServiceException;
 import ru.madmax.pet.microcurrency.producer.model.TestClientRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyService;
 import ru.madmax.pet.microcurrency.producer.model.ClientRequest;
-import ru.madmax.pet.microweather.common.model.TestServiceRequestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
 
-//{"source":"www.site1.ru","base_currency":"RUB","convert_currency":"USD","base_amount":50000}
 
 @ActiveProfiles("test")
 @WebFluxTest(controllers = {ProducerControllerV1.class, ExceptionHandlerController.class})  //для webTestClient

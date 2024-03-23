@@ -20,7 +20,7 @@ public class ProducerControllerV1 {
     private final CurrencyService currencyService;
 
     @PostMapping("/register")
-    public Mono<ResponseEntity<String>> weatherRequest(@RequestBody @Valid ClientRequest request) {
+    public Mono<ResponseEntity<String>> currencyRequest(@RequestBody @Valid ClientRequest request) {
         return currencyService.registerRequest(request)
         .map(guid ->
                 ResponseEntity

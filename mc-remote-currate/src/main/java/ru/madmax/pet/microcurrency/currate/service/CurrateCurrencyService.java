@@ -13,8 +13,8 @@ import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalRateException;
 import ru.madmax.pet.microcurrency.currate.model.RemoteResponse;
-import ru.madmax.pet.microweather.common.model.ServiceRequest;
-import ru.madmax.pet.microweather.common.model.Conversion;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.Conversion;
 
 import java.time.Duration;
 

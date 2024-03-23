@@ -3,12 +3,13 @@
 -- changeset id:initial_tables2
 -- preconditions onFail:HALT
 
-CREATE TABLE IF NOT EXISTS weather (
+CREATE TABLE IF NOT EXISTS conversion (
   id VARCHAR(36),
-  now BIGINT,
-  temperature DOUBLE PRECISION,
-  wind DOUBLE PRECISION,
-  url VARCHAR(1024),
+  source_id BIGINT NOT NULL,
+  base VARCHAR(4),
+  convert VARCHAR(4),
+  base_amount DECIMAL(12,4),
+  conversion_amount DECIMAL(12,4),
   CONSTRAINT pk_weather PRIMARY KEY (id)
 );
 

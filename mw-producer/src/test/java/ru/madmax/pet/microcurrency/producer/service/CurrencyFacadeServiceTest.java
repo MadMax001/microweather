@@ -20,6 +20,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microcurrency.common.model.*;
 import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
 import ru.madmax.pet.microcurrency.producer.exception.AppProducerException;
 import ru.madmax.pet.microcurrency.producer.exception.WrongSourceException;

@@ -8,12 +8,12 @@ import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 import ru.madmax.pet.microcurrency.producer.model.ClientRequest;
-import ru.madmax.pet.microweather.common.model.MessageDTO;
-import ru.madmax.pet.microweather.common.model.MessageType;
+import ru.madmax.pet.microcurrency.common.model.MessageDTO;
+import ru.madmax.pet.microcurrency.common.model.MessageType;
 
 import java.util.concurrent.CompletableFuture;
 
-import static ru.madmax.pet.microweather.common.model.MessageType.*;
+import static ru.madmax.pet.microcurrency.common.model.MessageType.*;
 
 @Service
 @AllArgsConstructor

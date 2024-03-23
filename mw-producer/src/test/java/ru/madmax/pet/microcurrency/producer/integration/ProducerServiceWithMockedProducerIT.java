@@ -36,6 +36,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microcurrency.common.model.MessageDTO;
+import ru.madmax.pet.microcurrency.common.model.MessageType;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.TestConversionBuilder;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microcurrency.producer.configuration.KafkaConfiguration;
 import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServicesListBuilder;
@@ -62,7 +66,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class/*, EmbeddedKafkaExtension.class*/})
 @ActiveProfiles("test")

@@ -27,6 +27,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microcurrency.common.model.Conversion;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.TestConversionBuilder;
+import ru.madmax.pet.microcurrency.common.model.TestServiceRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
 import ru.madmax.pet.microweather.common.model.*;
@@ -39,8 +43,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @TestPropertySource(properties = {"app.request.timeout=1000"})

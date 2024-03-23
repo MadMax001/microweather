@@ -14,7 +14,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.JacksonUtils;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.madmax.pet.microweather.common.model.MessageDTO;
+import ru.madmax.pet.microcurrency.common.model.MessageDTO;
 
 @Configuration
 @EnableKafka

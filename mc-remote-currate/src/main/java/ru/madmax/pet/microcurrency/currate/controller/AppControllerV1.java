@@ -7,11 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import ru.madmax.pet.microcurrency.currate.service.CurrencyService;
-import ru.madmax.pet.microweather.common.model.ServiceRequest;
-import ru.madmax.pet.microweather.common.model.Conversion;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.Conversion;
 
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
 
 
 @RestController

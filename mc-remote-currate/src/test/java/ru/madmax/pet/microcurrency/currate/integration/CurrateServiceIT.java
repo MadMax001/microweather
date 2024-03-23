@@ -20,7 +20,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.test.StepVerifier;
-import ru.madmax.pet.microweather.common.model.Conversion;
+import ru.madmax.pet.microcurrency.common.model.*;
 import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
@@ -28,8 +28,8 @@ import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_ERROR_KEY;
-import static ru.madmax.pet.microweather.common.Constant.HEADER_REQUEST_GUID_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_ERROR_KEY;
+import static ru.madmax.pet.microcurrency.common.model.Constant.HEADER_REQUEST_GUID_KEY;
 
 
 @ActiveProfiles("test")
@@ -140,7 +140,7 @@ class CurrateServiceIT {
     }
 
     @Test
-    void requestCurrency_withWrongParams_AndCheck400StatusAndErrorHeader() throws JsonProcessingException {
+    void requestCurrency_withWrongParams_AndCheck400StatusAndErrorHeader()  {
         var remoteResponse = "{\"status\":200,\"message\":\"rates\",\"data\":{\"USDRUB\":\"64.1824\"}}";
 
         final String stringPoint = "{\"base_currency\":\"RUB\",\"convert_currency\":\"USDA\",\"base_amount\":10000}";

@@ -5,7 +5,7 @@ import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import ru.madmax.pet.microweather.common.model.MessageDTO;
+import ru.madmax.pet.microcurrency.common.model.MessageDTO;
 
 
 import java.util.function.BiConsumer;

@@ -20,6 +20,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.test.StepVerifier;
+import ru.madmax.pet.microcurrency.common.model.*;
 import ru.madmax.pet.microcurrency.currate.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microcurrency.currate.configuration.MainConfig;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;

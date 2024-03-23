@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalModelStructureException;
 import ru.madmax.pet.microcurrency.currate.model.RemoteResponse;
-import ru.madmax.pet.microweather.common.model.Currency;
+import ru.madmax.pet.microcurrency.common.model.Currency;
 
 import java.io.IOException;
 import java.math.BigDecimal;

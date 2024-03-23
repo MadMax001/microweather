@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import ru.madmax.pet.microcurrency.common.model.*;
 import ru.madmax.pet.microcurrency.producer.service.LogService;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;

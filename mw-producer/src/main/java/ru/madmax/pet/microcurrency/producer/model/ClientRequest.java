@@ -3,7 +3,7 @@ package ru.madmax.pet.microcurrency.producer.model;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import ru.madmax.pet.microweather.common.model.ServiceRequest;
+import ru.madmax.pet.microcurrency.common.model.ServiceRequest;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
