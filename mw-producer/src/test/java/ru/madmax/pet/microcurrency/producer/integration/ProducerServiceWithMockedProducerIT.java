@@ -51,7 +51,6 @@ import ru.madmax.pet.microcurrency.producer.model.TestClientRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.service.*;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
-import ru.madmax.pet.microweather.common.model.*;
 import ru.madmax.pet.microcurrency.producer.service.kafka.CurrencyKafkaSenderServiceViaConsumerFactoryConfiguration;
 
 import java.io.IOException;

@@ -20,7 +20,6 @@ import ru.madmax.pet.microcurrency.producer.service.LogService;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
 import ru.madmax.pet.microcurrency.producer.service.handlers.ErrorSendingHandler;
 import ru.madmax.pet.microcurrency.producer.service.handlers.SuccessSendingHandler;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.math.BigDecimal;
 import java.util.concurrent.BlockingQueue;

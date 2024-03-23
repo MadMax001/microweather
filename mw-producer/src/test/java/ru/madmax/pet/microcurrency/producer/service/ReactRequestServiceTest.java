@@ -33,7 +33,6 @@ import ru.madmax.pet.microcurrency.common.model.TestConversionBuilder;
 import ru.madmax.pet.microcurrency.common.model.TestServiceRequestBuilder;
 import ru.madmax.pet.microcurrency.producer.configuration.HttpClientConfiguration;
 import ru.madmax.pet.microcurrency.producer.model.RequestParams;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

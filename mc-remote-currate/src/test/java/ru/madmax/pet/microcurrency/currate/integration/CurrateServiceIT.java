@@ -21,7 +21,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.test.StepVerifier;
 import ru.madmax.pet.microcurrency.common.model.*;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;

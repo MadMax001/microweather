@@ -20,7 +20,6 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 import ru.madmax.pet.microcurrency.common.model.*;
 import ru.madmax.pet.microcurrency.producer.service.CurrencyKafkaSenderService;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

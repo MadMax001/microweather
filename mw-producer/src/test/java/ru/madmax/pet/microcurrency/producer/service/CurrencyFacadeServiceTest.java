@@ -25,7 +25,6 @@ import ru.madmax.pet.microcurrency.producer.configuration.CurrencyRemoteServices
 import ru.madmax.pet.microcurrency.producer.exception.AppProducerException;
 import ru.madmax.pet.microcurrency.producer.exception.WrongSourceException;
 import ru.madmax.pet.microcurrency.producer.model.*;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.time.Duration;
 import java.util.List;

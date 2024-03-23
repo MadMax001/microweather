@@ -25,7 +25,6 @@ import ru.madmax.pet.microcurrency.currate.configuration.HttpClientConfiguration
 import ru.madmax.pet.microcurrency.currate.configuration.MainConfig;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalAmountException;
 import ru.madmax.pet.microcurrency.currate.exception.IllegalRateException;
-import ru.madmax.pet.microweather.common.model.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
