@@ -1,0 +1,89 @@
+version: "3.9"
+services:
+  mc_postgres:
+    container_name: mc_postgres
+    image: postgres:14.7-alpine
+    environment:
+      POSTGRES_DB: ${DATASOURCE_BASE:-test}
+      POSTGRES_USER: ${DATASOURCE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD:-secret}
+      PGDATA: /var/lib/postgresql/data/pgdata
+#    volumes:
+#      - D:\pgdata_test:/var/lib/postgresql/data
+    expose:
+      - ${POSTGRES_PORT:-5432}
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+    restart: unless-stopped
+    networks:
+      - postgres
+
+  mc_pgadmin:
+    container_name: mc_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: max@mail.com
+      PGADMIN_DEFAULT_PASSWORD: 12345
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    networks:
+      - postgres
+
+  mc_zookeeper:
+    container_name: mc_zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "22181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  mc_kafka:
+    container_name: mc_kafka
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "${KAFKA_PORT}:${KAFKA_PORT}"
+    expose:
+      - ${INNER_KAFKA_PORT}
+    depends_on:
+      - mc_zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: mc_zookeeper:2181
+      KAFKA_ZOOKEEPER_CONNECTION_TIMOUT_MS: 36000
+      KAFKA_LISTENERS: INSIDE://:${INNER_KAFKA_PORT}, OUTSIDE://:${KAFKA_PORT}
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://mc_kafka:${INNER_KAFKA_PORT}, OUTSIDE://localhost:${KAFKA_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT, OUTSIDE:PLAINTEXT
+
+
+  mc_kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: mc_kafka-ui
+    ports:
+      - "5051:8080"
+    restart: always
+    depends_on:
+      - mc_kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: mc_kafka:${INNER_KAFKA_PORT}
+
+volumes:
+  pgadmin-data:
+
+networks:
+  postgres:
+    driver: bridge

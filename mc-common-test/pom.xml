@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.madmax.pet</groupId>
         <artifactId>microcurrency</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>${PROJECT_VERSION}</version>
     </parent>
 
     <artifactId>mc-common-test</artifactId>

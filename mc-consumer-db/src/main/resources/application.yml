@@ -1,8 +1,9 @@
 server:
   shutdown: graceful
+  port: ${SERVICE_CONSUMER_DB_PORT}
 spring:
   kafka:
-    bootstrap-servers: localhost:9093
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
     topic:
       name: conversion-topic
     consumer:
@@ -15,13 +16,13 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/changelog.sql
-    url: jdbc:postgresql://10.73.0.50:5432/currency
-    user: mc_user
-    password: dfltpwd2024
+    url: jdbc:postgresql://${POSTGRES_HOST:-localhost}:${POSTGRES_PORT:-5432}/${DATASOURCE_BASE:-test}
+    user: ${DATASOURCE_USERNAME:-test}
+    password: ${DATASOURCE_PASSWORD:-secret}
   r2dbc:
-    url: r2dbc:postgresql://10.73.0.50:5432/currency
-    username: mc_user
-    password: dfltpwd2024
+    url: r2dbc:postgresql://${POSTGRES_HOST:-localhost}:${POSTGRES_PORT:-5432}/${DATASOURCE_BASE:-test}
+    username: ${DATASOURCE_USERNAME:-test}
+    password: ${DATASOURCE_PASSWORD:-secret}
 logging:
   charset:
     console: windows-1251

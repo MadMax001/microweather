@@ -8,13 +8,14 @@ app:
   services:
     -
       id: currate
-      host: http://localhost:8081
+      host: http://localhost:${SERVICE_REMOTE_CURRATE_PORT}
       path: /api/v1/convert
 server:
+  port: ${SERVICE_PRODUCER_PORT}
   shutdown: graceful
 spring:
   kafka:
-    bootstrap-servers: localhost:9093
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
     topic:
       name: conversion-topic
     replication:

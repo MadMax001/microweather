@@ -6,6 +6,7 @@ app:
       attempts: 3
   url: https://currate.ru
   path: /api/
-  key: 1589eb3557496051c433b2144eb14f55
+  key: ${CURRATE_KEY}
 server:
   shutdown: graceful
+  port: ${SERVICE_REMOTE_CURRATE_PORT}
