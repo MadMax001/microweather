@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.madmax.pet</groupId>
-        <artifactId>microweather</artifactId>
+        <artifactId>microcurrency</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 

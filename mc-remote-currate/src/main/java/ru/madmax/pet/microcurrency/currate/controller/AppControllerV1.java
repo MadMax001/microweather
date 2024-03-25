@@ -22,7 +22,7 @@ public class AppControllerV1 {
     private final CurrencyService currencyService;
 
     @PostMapping("/convert")
-    public Mono<ResponseEntity<Conversion>> weatherRequest(@RequestBody @Valid ServiceRequest request,
+    public Mono<ResponseEntity<Conversion>> conversionRequest(@RequestBody @Valid ServiceRequest request,
                                                            @RequestHeader(name= HEADER_REQUEST_GUID_KEY) String requestGuid) {
 
         var mono = currencyService.getRateMono(request);
