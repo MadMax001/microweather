@@ -1,0 +1,24 @@
+spring:
+  http:
+    log-request-details: true
+  kafka:
+    properties:
+      "[isolation.level]": read_committed
+    client-id: consumer-tester
+    #    bootstrap-servers: ${spring.embedded.kafka.brokers}
+    topic:
+      name: test-simple-topic
+    replication:
+      factor: 1
+    partition:
+      number: 1
+    consumer:
+      group-id: test-group-second
+  logging:
+    level:
+      org:
+        springframework:
+          r2dbc:
+            DEBUG
+      liquibase: TRACE
+

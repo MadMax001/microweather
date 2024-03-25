@@ -1,0 +1,27 @@
+server:
+  shutdown: graceful
+spring:
+  kafka:
+    bootstrap-servers: localhost:9093
+    topic:
+      name: conversion-topic
+    consumer:
+      group-id: mc-group-second
+      client-id: appcons
+    replication:
+      factor: 1
+    partition:
+      number: 1
+logging:
+  charset:
+    console: windows-1251
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        security: TRACE
