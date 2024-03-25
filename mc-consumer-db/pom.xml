@@ -18,12 +18,12 @@
   <dependencies>
     <dependency>
       <groupId>${project.parent.groupId}</groupId>
-      <artifactId>mw-common</artifactId>
+      <artifactId>mc-common</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.parent.groupId}</groupId>
-      <artifactId>mw-common-test</artifactId>
+      <artifactId>mc-common-test</artifactId>
       <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>

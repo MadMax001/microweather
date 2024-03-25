@@ -20,6 +20,7 @@
         <module>mc-producer</module>
         <module>mc-consumer-db</module>
         <module>mc-remote-currate</module>
+        <module>mc-consumer-second</module>
     </modules>
 
     <properties>
