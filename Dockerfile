@@ -1,23 +1,37 @@
-FROM eclipse-temurin:17-jdk-alpine AS MAVEN_BUILD
+FROM maven:3.8.5-openjdk-17 AS MAVEN_BUILD
 
-WORKDIR /opt/app
-COPY pom.xml /opt/app/
-COPY mc-common /opt/app/mc-common/
-COPY mc-common-test /opt/app/mc-common-test/
-COPY mc-consumer-db /opt/app/mc-consumer-db/
-COPY mc-consumer-second /opt/app/mc-consumer-second/
-COPY mc-producer /opt/app/mc-producer/
-COPY mc-remote-currate /opt/app/mc-remote-currate/
+ARG RELATIVE_MODULE
 
-WORKDIR /tmp/
-RUN mvn clean install -f pom.xml -Pcontainers-tests
+ENV HOME=/home/app
+RUN mkdir -p $HOME
+
+WORKDIR $HOME
+
+ADD pom.xml $HOME/pom.xml
+ADD mc-common/pom.xml $HOME/mc-common/pom.xml
+ADD mc-common-test/pom.xml $HOME/mc-common-test/pom.xml
+ADD mc-consumer-db/pom.xml $HOME/mc-consumer-db/pom.xml
+ADD mc-consumer-second/pom.xml $HOME/mc-consumer-second/pom.xml
+ADD mc-producer/pom.xml $HOME/mc-producer/pom.xml
+ADD mc-remote-currate/pom.xml $HOME/mc-remote-currate/pom.xml
+RUN ["/usr/local/bin/mvn-entrypoint.sh", "mvn", "verify", "clean", "--fail-never"]
+
+ADD mc-common $HOME/mc-common/
+ADD mc-common-test $HOME/mc-common-test/
+ADD ${RELATIVE_MODULE} /$HOME/${RELATIVE_MODULE}/
+
+ARG PV_ARG
+ENV PV=${PV_ARG}
+
+RUN mvn -pl ${RELATIVE_MODULE} -DskipTests -DPROJECT_VERSION=$PV --also-make package
 
 FROM openjdk:17-jdk-alpine
-WORKDIR /opt/app
+WORKDIR /opt/app/
 
-COPY --from=MAVEN_BUILD /opt/app/mc-consumer-db/target/mc-consumer-db.jar /mc-consumer-db.jar
-COPY --from=MAVEN_BUILD /opt/app/mc-consumer-second/target/mc-consumer-second.jar /mc-consumer-second.jar
-COPY --from=MAVEN_BUILD /opt/app/mc-producer/target/mc-producer.jar /mc-producer.jar
-COPY --from=MAVEN_BUILD /opt/app/mc-remote-currate/target/mc-remote-currate.jar /mc-remote-currate.jar
+ARG RELATIVE_MODULE
 
-ENTRYPOINT [java -Ddb.host="${DB_HOST}" -jar /mc-consumer-second.jar]
+ENV SERVICE_NAME=${RELATIVE_MODULE}
+ENV HOME=/home/app
+
+COPY --from=MAVEN_BUILD $HOME/${RELATIVE_MODULE}/target/${RELATIVE_MODULE}.jar ${RELATIVE_MODULE}.jar
+CMD java -jar /opt/app/$SERVICE_NAME.jar

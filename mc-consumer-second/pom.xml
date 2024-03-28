@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.madmax.pet</groupId>
         <artifactId>microcurrency</artifactId>
-        <version>${PROJECT_VERSION}</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>mc-consumer-second</artifactId>
@@ -70,7 +70,7 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>conslogger</finalName>
+        <finalName>mc-consumer-second</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

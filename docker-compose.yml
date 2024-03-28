@@ -8,8 +8,8 @@ services:
       POSTGRES_USER: ${DATASOURCE_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD:-secret}
       PGDATA: /var/lib/postgresql/data/pgdata
-#    volumes:
-#      - D:\pgdata_test:/var/lib/postgresql/data
+    #    volumes:
+    #      - D:\pgdata_test:/var/lib/postgresql/data
     expose:
       - ${POSTGRES_PORT:-5432}
     deploy:
@@ -55,8 +55,6 @@ services:
     image: confluentinc/cp-kafka:latest
     ports:
       - "${KAFKA_PORT}:${KAFKA_PORT}"
-    expose:
-      - ${INNER_KAFKA_PORT}
     depends_on:
       - mc_zookeeper
     environment:
@@ -67,7 +65,6 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_ADVERTISED_LISTENERS: INSIDE://mc_kafka:${INNER_KAFKA_PORT}, OUTSIDE://localhost:${KAFKA_PORT}
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT, OUTSIDE:PLAINTEXT
-
 
   mc_kafka-ui:
     image: provectuslabs/kafka-ui
@@ -80,6 +77,41 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: mc_kafka:${INNER_KAFKA_PORT}
+
+  mc_producer:
+    container_name: mc_producer
+    env_file:
+      - ".env"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PV_ARG=${PROJECT_VERSION}
+        - RELATIVE_MODULE=mc-producer
+    ports:
+      - "${SERVICE_PRODUCER_PORT}:${SERVICE_PRODUCER_PORT}"
+#    restart: unless-stopped
+    depends_on:
+      - mc_kafka
+
+  mc_consumer:
+    container_name: mc_consumer
+    env_file:
+      - ".env"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PV_ARG=${PROJECT_VERSION}
+        - RELATIVE_MODULE=mc-consumer-db
+    expose:
+      - "${SERVICE_CONSUMER_DB_PORT}"
+    #    restart: unless-stopped
+    depends_on:
+      - mc_kafka
+      - mc_postgres
+    networks:
+      - postgres
 
 volumes:
   pgadmin-data:

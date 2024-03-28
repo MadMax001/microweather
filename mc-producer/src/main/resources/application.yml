@@ -15,7 +15,7 @@ server:
   shutdown: graceful
 spring:
   kafka:
-    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
+    bootstrap-servers: ${KAFKA_HOST}:${INNER_KAFKA_PORT}
     topic:
       name: conversion-topic
     replication:

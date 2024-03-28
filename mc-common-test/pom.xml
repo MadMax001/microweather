@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.madmax.pet</groupId>
         <artifactId>microcurrency</artifactId>
-        <version>${PROJECT_VERSION}</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>mc-common-test</artifactId>
@@ -24,7 +24,7 @@
     </dependencies>
 
     <build>
-        <finalName>mw-common-test</finalName>
+        <finalName>mc-common-test</finalName>
     </build>
 
 </project>

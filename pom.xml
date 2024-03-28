@@ -12,7 +12,7 @@
 
     <groupId>ru.madmax.pet</groupId>
     <artifactId>microcurrency</artifactId>
-    <version>${PROJECT_VERSION}</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <modules>
         <module>mc-common</module>
@@ -30,6 +30,8 @@
         <testcontainers.version>1.19.3</testcontainers.version>
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
         <java-uuid-generator.version>4.3.0</java-uuid-generator.version>
+        <PROJECT_VERSION>1.0</PROJECT_VERSION>
+        <revision>${PROJECT_VERSION}</revision>
     </properties>
 
     <profiles>
